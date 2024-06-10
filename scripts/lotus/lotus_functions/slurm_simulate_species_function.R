@@ -109,6 +109,9 @@ simulate_species <- function(env_data,
     #extract prevalence
     prevalence <- as.numeric(pa$PA.conversion[5])
     
+    # simulate random detection probability from beta distribution
+    det_prob <- rbeta(1, 2,5)
+    
     #determine maximum number of observations based on prevalence
     #max_obs <- round(prevalence*max_samp)
     max_obs <- max_samp #set max no of observations - could use data?
@@ -142,7 +145,8 @@ simulate_species <- function(env_data,
                            observations = occs$sample.points, 
                            variables = pa$details$variables, 
                            model_variables = model_variables, 
-                           prevalence = prevalence)
+                           prevalence = prevalence,
+                           detection_probability = det_prob)
   }
   
   #return(community)
@@ -176,7 +180,7 @@ simulate_species <- function(env_data,
     # are slightly different extents
     cell_nums <- cellFromXY(community[[1]]$pres_abs, xy = sampled_locs[,1:2])
     
-    # get presence absence at chosen locations for all communities
+    # get presence absence at chosen locations for all species
     comms_sampled <- lapply(community, FUN = function(x) {
       data.frame(sampled_locs[,1:2], 
                  Real = terra::extract(x=x$pres_abs, 
@@ -185,12 +189,13 @@ simulate_species <- function(env_data,
     
     # determine if species is detected - if a species is present at a sampling site,
     # sample between a 0 and 1 according to the detection probability
-    comms_observed <- lapply(comms_sampled, function(com) {
+    comms_observed <- lapply(1:length(comms_sampled), function(com) {
       
-      data.frame(com, 
-                 Observed = sapply(com$Real, FUN = function(x) {
+      data.frame(comms_sampled[[com]], 
+                 Observed = sapply(comms_sampled[[com]]$Real, FUN = function(x) {
                    ifelse(x == 1, sample(c(NA,1), size = 1, 
-                                         prob = c(1-det_prob, det_prob)), NA)
+                                         prob = c(1-community[[com]]$detection_probability, 
+                                                  community[[com]]$detection_probability)), NA)
                  }))
       
     })
@@ -209,7 +214,8 @@ simulate_species <- function(env_data,
                                   observations = comm_cross_spp[comm_cross_spp$Real == 1,], 
                                   variables = comm_each_spp$variables,
                                   model_variables = comm_each_spp$model_variables,
-                                  prevalence = comm_each_spp$prevalence)
+                                  prevalence = comm_each_spp$prevalence,
+                                  detection_probability = comm_each_spp$detection_probability)
       
       
       
