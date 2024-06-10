@@ -1,3 +1,7 @@
+# personal files to ignore
+data/*
+outputs/*
+
 # History files
 .Rhistory
 .Rapp.history
