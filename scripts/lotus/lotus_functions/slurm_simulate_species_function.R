@@ -8,10 +8,11 @@ simulate_species <- function(env_data,
                              beta = 0.5, 
                              alpha = -0.05, 
                              max_samp = 1000, 
-                             det_prob = 0.5, 
+                             det_prob = 0.5,
                              effort = NULL, 
                              weight_adj = 1, 
                              background = NULL,
+                             niche_breadth = "narrow",
                              community_version_name, 
                              simulation_run_name,
                              write = TRUE){
@@ -101,7 +102,7 @@ simulate_species <- function(env_data,
                                         sample.points = TRUE, 
                                         nb.points = 10000, 
                                         plot = FALSE, 
-                                        niche.breadth = "narrow")
+                                        niche.breadth = niche_breadth)
     
     #convert to presence-absence
     pa <- convertToPA(my.pca.species, beta = beta, alpha = alpha, plot = FALSE)
@@ -109,8 +110,10 @@ simulate_species <- function(env_data,
     #extract prevalence
     prevalence <- as.numeric(pa$PA.conversion[5])
     
-    # simulate random detection probability from beta distribution
-    det_prob <- rbeta(1, 2,5)
+    # simulate random detection probability from beta distribution if specified
+    if(det_prob == "beta"){
+      det_prob <- rbeta(1, 2,5)
+    }
     
     #determine maximum number of observations based on prevalence
     #max_obs <- round(prevalence*max_samp)
@@ -146,7 +149,8 @@ simulate_species <- function(env_data,
                            variables = pa$details$variables, 
                            model_variables = model_variables, 
                            prevalence = prevalence,
-                           detection_probability = det_prob)
+                           detection_probability = det_prob,
+                           niche_breadth = niche_breadth)
   }
   
   #return(community)
@@ -215,7 +219,8 @@ simulate_species <- function(env_data,
                                   variables = comm_each_spp$variables,
                                   model_variables = comm_each_spp$model_variables,
                                   prevalence = comm_each_spp$prevalence,
-                                  detection_probability = comm_each_spp$detection_probability)
+                                  detection_probability = comm_each_spp$detection_probability,
+                                  niche_breadth = niche_breadth)
       
       
       
@@ -226,8 +231,7 @@ simulate_species <- function(env_data,
     
   }
   
-  
-  
+  # name the community from the parameters
   community_name <- paste0("community_",seed,"_", n, "_sim")
   
   if(!dir.exists(paste0(outPath, community_version_name, simulation_run_name,"/", community_version_name, community_name,"/"))){

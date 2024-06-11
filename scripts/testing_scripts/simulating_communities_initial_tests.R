@@ -30,14 +30,15 @@ simulated_community <- simulate_species(
   seed = 1, # community number
   max_samp = 20000, # max number of observations per species
   n_env = 10, # number of environmental variables from which to sample for species generation
-  n = 75, # number of species per community
-  det_prob = 0.2, # detection probability
+  n = 50, # number of species per community
+  det_prob = "beta", # detection probability
   sample_across_species = TRUE, # whether to sample the same locations across all species (i.e. list structure) or sample different locations for each species
+  niche_breadth = "any",
   effort = "data/effort_layers/butterfly_1km_effort_layer.grd", # sampling effort layer
   background = "MeanDiRange", # a layer which contains a value for each cell in the region of interest
   community_version_name = "v1", # Which community version
   simulation_run_name = 'first_community',
-  write = TRUE
+  write = FALSE
 )
 
 
@@ -53,12 +54,16 @@ detdf <- do.call(rbind, lapply(1:length(simulated_community), function(x) {
 library(tidyverse)
 
 ggplot(detdf, aes(prevalence, det_prob)) +
-  geom_hline(yintercept = 0.35) +
-  geom_vline(xintercept = 0.2) +
-  annotate("text", x = 0.1, y = 0.5, label = "rare / visible") +
-  annotate("text", x = 0.1, y = 0.2, label = "rare / cryptic") +
-  annotate("text", x = 0.35, y = 0.2, label = "common / cryptic") +
-  annotate("text", x = 0.35, y = 0.5, label = "common / visible") +
+  geom_hline(yintercept = median(detdf$det_prob)) +
+  geom_vline(xintercept = median(detdf$prevalence)) +
+  annotate("text", x = quantile(detdf$prevalence, probs = 0.25), 
+           y = quantile(detdf$det_prob, probs = 0.75), label = "rare / visible") +
+  annotate("text",x = quantile(detdf$prevalence, probs = 0.25), 
+           y = quantile(detdf$det_prob, probs = 0.25), label = "rare / cryptic") +
+  annotate("text", x = quantile(detdf$prevalence, probs = 0.75), 
+           y = quantile(detdf$det_prob, probs = 0.25), label = "common / cryptic") +
+  annotate("text", x = quantile(detdf$prevalence, probs = 0.75), 
+           y = quantile(detdf$det_prob, probs = 0.75), label = "common / visible") +
   geom_point() +
   theme_bw()
 
