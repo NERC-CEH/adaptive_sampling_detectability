@@ -8,7 +8,7 @@ simulate_species <- function(env_data,
                              beta = 0.5, 
                              alpha = -0.05, 
                              max_samp = 1000, 
-                             det_prob = 0.5,
+                             detect_prob = 0.5,
                              effort = NULL, 
                              weight_adj = 1, 
                              background = NULL,
@@ -25,6 +25,8 @@ simulate_species <- function(env_data,
   
   #set seed if specified
   if(!is.null(seed)){set.seed(seed)}
+  # 
+  # for(i in 1:10) if(TRUE) print(rbeta(1, 2, 5))
   
   #crop to extent if specified
   if(!is.null(extent)){
@@ -58,7 +60,7 @@ simulate_species <- function(env_data,
   } else if ((is.character(background)|is.factor(background)) & !grepl("\\.", background)) {
     bg_layer <- terra::subset(env_extent, as.character(background))
   } else if ((is.character(background)|is.factor(background)) & grepl("\\.", background)) {
-    bg_layer <- terra::raster(as.character(background))
+    bg_layer <- terra::rast(as.character(background))
   } else { bg_layer <- NULL }
   
   # extract effort layer from raster if provided (note currently uses layers in 
@@ -79,9 +81,11 @@ simulate_species <- function(env_data,
     
     # ensure extents match
     if(ext(bg_layer)!=ext(eff_layer)) {
+      
       # extend both to match each other
       bg_layer <- extend(bg_layer, eff_layer)
       eff_layer <- extend(eff_layer, bg_layer)
+      
     }
     
     eff_weights <- (bg_layer/bg_layer) + (eff_layer/weight_adj)
@@ -92,6 +96,11 @@ simulate_species <- function(env_data,
   
   #for each species generate observations
   for (i in 1:n){
+    
+    # simulate random detection probability from beta distribution if specified
+    if(detect_prob == "beta"){
+      det_prob <- rbeta(1, 2,5)
+    }
     
     #subset env raster
     my.stack <- env_extent[[sample(1:nlyr(env_extent),
@@ -109,11 +118,7 @@ simulate_species <- function(env_data,
     
     #extract prevalence
     prevalence <- as.numeric(pa$PA.conversion[5])
-    
-    # simulate random detection probability from beta distribution if specified
-    if(det_prob == "beta"){
-      det_prob <- rbeta(1, 2,5)
-    }
+   
     
     #determine maximum number of observations based on prevalence
     #max_obs <- round(prevalence*max_samp)

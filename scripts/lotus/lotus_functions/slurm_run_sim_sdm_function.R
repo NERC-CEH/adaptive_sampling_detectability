@@ -1,8 +1,19 @@
-#' # Run all 10 simulated species on LOTUS
+#' # Run all simulated species
 #' 
-slurm_run_sim_sdm <- function(index, spdata, model, data_type, writeRas, GB, community_version, AS_version, simulation_run_name, n_communities, n_species){
-  #' 
-  #' ## 1. Simulate distributions (or read in simulated spp)
+slurm_run_sim_sdm <- function(index, 
+                              spdata, 
+                              model, 
+                              data_type, 
+                              writeRas, 
+                              GB, 
+                              community_version, 
+                              AS_version, 
+                              simulation_run_name, 
+                              n_communities, 
+                              n_species,
+                              inpath,
+                              outpath){
+  
   library(raster)
   library(virtualspecies)
   library(dismo)
@@ -12,31 +23,36 @@ slurm_run_sim_sdm <- function(index, spdata, model, data_type, writeRas, GB, com
   library(randomForest)
   #library(rgdal)
   
-  #load output of demo_simulatebaseline.R (could be reduced in size to speed this up)
-  dirs <- config::get("LOTUSpaths")
+  source(paste0(inpath,"reformat_simulated_data.R"))
+  source(paste0(inpath, "Edited_Rob_Functions.R"))
   
+  # remove this
+  # dirs <- config::get("LOTUSpaths")
+  
+  ## 1. Simulate distributions (or read in simulated spp)
+
   #now matches output format of slurm_simulate_species.R - can be changed?
   community <- readRDS(as.character(spdata))
   
   #' ## 2. Create input data for models
   #' 
-  #' We need to extract the virtual species data we simulated and combine into a community dataset. For each species we can create a new dataset with pseudoabsences generated from the other species in the community
+  #' We need to extract the virtual species data we simulated and combine into a community dataset. 
+  #' For each species we can create a new dataset with pseudoabsences generated from the 
+  #' other species in the community
   #' 
   #create a pseudo-absence dataset
-  source(paste0(dirs$inpath,"reformat_simulated_data.R"))
-  source(paste0(dirs$inpath, "Edited_Rob_Functions.R"))
   
   #read in raster data for env data
   #read in env data frame
   
   if(GB == TRUE){
-    hbv_y <- raster::stack(paste0(dirs$inpath,"envdata_1km_no_corr_noNA.grd"))
+    hbv_y <- terra::rast(paste0(dirs$inpath,"envdata_1km_no_corr_noNA.grd"))
     hbv_df <- read.csv(paste0(dirs$inpath, "hbv_df_1km.csv"))} else if(GB == FALSE){
-      hbv_y <- raster::stack(paste0(dirs$inpath,"hbv_y.grd")) 
+      hbv_y <- terra::rast(paste0(dirs$inpath,"hbv_y.grd")) 
       hbv_df <- readRDS(paste0(dirs$inpath, "hbv_df.rds"))
     }
   
-  presences_df <- reformat_data(community, year = 2015, species_name = 'Sp')
+  presences_df <- reformat_simulated_data(community, year = 2015, species_name = 'Sp')
   #head(presences_df)
   
   species_list <- unique(presences_df$species)
