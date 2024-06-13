@@ -97,15 +97,22 @@ simulate_species <- function(env_data,
   #for each species generate observations
   for (i in 1:n){
     
-    # simulate random detection probability from beta distribution if specified
-    if(detect_prob == "beta"){
+    # simulate random detection probability from different distributions if specified
+    if(detect_prob == "beta") {
       det_prob <- rbeta(1, 2,5)
+    } else if(detect_prob == "uniform") {
+      det_prob <- runif(1, 0, 1)
+    } else if(is.numeric(detect_prob)) {
+      det_prob <- detect_prob
+    } else {
+      stop("!! 'detect_prob' must be a number between 0-1, 'beta' or 'uniform'")
     }
     
     #subset env raster
     my.stack <- env_extent[[sample(1:nlyr(env_extent),
                                    size = runif(1,env_min,env_max), replace = FALSE)]]
     
+    # make edits to specify number of rare vs common species
     #generate a suitability raster
     my.pca.species <- generateSpFromPCA(raster.stack = my.stack, 
                                         sample.points = TRUE, 
@@ -118,7 +125,7 @@ simulate_species <- function(env_data,
     
     #extract prevalence
     prevalence <- as.numeric(pa$PA.conversion[5])
-   
+    
     
     #determine maximum number of observations based on prevalence
     #max_obs <- round(prevalence*max_samp)
@@ -148,8 +155,8 @@ simulate_species <- function(env_data,
                               replace = FALSE)
     
     #store required outputs to list
-    community[[i]] <- list(true_prob_occ = pa$probability.of.occurrence, 
-                           pres_abs = pa$pa.raster, 
+    community[[i]] <- list(true_prob_occ = wrap(pa$probability.of.occurrence), # need to wrap rasters for saving, then use terra::unwrap
+                           pres_abs = wrap(pa$pa.raster), 
                            observations = occs$sample.points, 
                            variables = pa$details$variables, 
                            model_variables = model_variables, 
@@ -187,12 +194,12 @@ simulate_species <- function(env_data,
     # - easier to sample across communities using cell numbers rather than coordinates
     # can't use cell numbers directly from the effort layer, just in case effort layer and community layer 
     # are slightly different extents
-    cell_nums <- cellFromXY(community[[1]]$pres_abs, xy = sampled_locs[,1:2])
+    cell_nums <- cellFromXY(terra::unwrap(community[[1]]$pres_abs), xy = sampled_locs[,1:2])
     
     # get presence absence at chosen locations for all species
     comms_sampled <- lapply(community, FUN = function(x) {
       data.frame(sampled_locs[,1:2], 
-                 Real = terra::extract(x=x$pres_abs, 
+                 Real = terra::extract(x=terra::unwrap(x$pres_abs), 
                                        y=cell_nums)[,1])
     })
     

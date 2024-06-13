@@ -11,10 +11,10 @@ slurm_run_sim_sdm <- function(index,
                               simulation_run_name, 
                               n_communities, 
                               n_species,
-                              inpath,
+                              function_path,
                               outpath){
   
-  library(raster)
+  library(terra)
   library(virtualspecies)
   library(dismo)
   library(tidyverse)
@@ -23,14 +23,14 @@ slurm_run_sim_sdm <- function(index,
   library(randomForest)
   #library(rgdal)
   
-  source(paste0(inpath,"reformat_simulated_data.R"))
-  source(paste0(inpath, "Edited_Rob_Functions.R"))
+  source(paste0(function_path,"reformat_simulated_data.R"))
+  source(paste0(function_path, "Edited_Rob_Functions.R"))
   
   # remove this
   # dirs <- config::get("LOTUSpaths")
   
   ## 1. Simulate distributions (or read in simulated spp)
-
+  
   #now matches output format of slurm_simulate_species.R - can be changed?
   community <- readRDS(as.character(spdata))
   
@@ -45,12 +45,13 @@ slurm_run_sim_sdm <- function(index,
   #read in raster data for env data
   #read in env data frame
   
-  if(GB == TRUE){
-    hbv_y <- terra::rast(paste0(dirs$inpath,"envdata_1km_no_corr_noNA.grd"))
-    hbv_df <- read.csv(paste0(dirs$inpath, "hbv_df_1km.csv"))} else if(GB == FALSE){
-      hbv_y <- terra::rast(paste0(dirs$inpath,"hbv_y.grd")) 
-      hbv_df <- readRDS(paste0(dirs$inpath, "hbv_df.rds"))
-    }
+  if(GB) {
+    hbv_y <- terra::rast(paste0(envdata,"envdata_1km_no_corr_noNA.grd"))
+    hbv_df <- as.data.frame(hbv_y, xy = TRUE) # read.csv(paste0(envdata, "hbv_df_1km.csv"))
+  } else { ### sort this out to crop extent for testing
+    hbv_y <- terra::rast(paste0(dirs$inpath,"hbv_y.grd")) 
+    hbv_df <- readRDS(paste0(dirs$inpath, "hbv_df.rds"))
+  }
   
   presences_df <- reformat_simulated_data(community, year = 2015, species_name = 'Sp')
   #head(presences_df)
@@ -77,7 +78,7 @@ slurm_run_sim_sdm <- function(index,
   #' Initially we can run just the logistic regression models as a test
   
   #source code from Thomas' workflow
-  source(paste0(dirs$inpath,"getpredictions_dfsd.R"))
+  source(paste0(function_path,"getpredictions_dfsd.R"))
   
   #loop over all 10 species - set up for LOTUS
   

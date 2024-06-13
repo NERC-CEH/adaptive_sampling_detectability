@@ -1,6 +1,7 @@
 # personal files to ignore
 data/*
 outputs/*
+*.yml
 
 # History files
 .Rhistory
