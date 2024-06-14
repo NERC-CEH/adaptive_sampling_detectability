@@ -14,7 +14,8 @@ fsdm <- function(species, model, climDat, spData, k, write, outPath, #inters = F
   } else {
     
     #### extract data ####
-    pres <- data.frame(val = 1, raster::extract(x = climDat, y = spDat$Presence, na.rm = T), spDat$Presence)
+    pres <- data.frame(val = 1, terra::extract(x = climDat, y = spDat$Presence, 
+                                               na.rm = TRUE, ID = FALSE), spDat$Presence)
     
     if (any(is.na(pres))) { # this might not be needed with the new screenraster argument for the create pseudoabs function
       
@@ -25,9 +26,12 @@ fsdm <- function(species, model, climDat, spData, k, write, outPath, #inters = F
     
     nRec <- nrow(pres)
     
+    print(paste("Running model for:", species))
     print(paste("Occurrence records:", nRec))
     
-    ab <- data.frame(val = 0, raster::extract(x = climDat, y = spDat$pseudoAbsence, na.rm = T), spDat$pseudoAbsence)
+    ab <- data.frame(val = 0, terra::extract(x = climDat, y = spDat$pseudoAbsence, 
+                                             na.rm = TRUE, ID = FALSE), 
+                     spDat$pseudoAbsence)
     
     if (any(is.na(ab))) {
       
@@ -333,11 +337,13 @@ fsdm <- function(species, model, climDat, spData, k, write, outPath, #inters = F
     out <- list(species, nRec,
                 auc_val, meanAUC, k, 
                 allDat_loc, ## taken out to see if it reduces file sizes
-                e, mods_out)
+                e, mods_out, 
+                names(climDat))
     names(out) <- c("Species", "Number of records", 
                     "AUC", "meanAUC", "Number of folds for validation",
                     "Data",
-                    "Model_evaluation", "Bootstrapped_models")
+                    "Model_evaluation", "Bootstrapped_models",
+                    "Model_variables")
     
     if (write == TRUE) {
       print(species)
@@ -352,7 +358,7 @@ fsdm <- function(species, model, climDat, spData, k, write, outPath, #inters = F
 
 #### Presence absence function
 cpa <- function (spdat, species, minYear, maxYear, nAbs, matchPres = FALSE, 
-                 recThresh, replace = F, screenRaster = NULL) 
+                 recThresh, replace = FALSE, screenRaster = NULL) 
 {
   dat <- spdat[spdat$year >= minYear & spdat$year <= maxYear,]
   pres <- dat[dat$species == species, c("lon", "lat")]
@@ -478,7 +484,7 @@ get_predictions <- function(model_outs,
   if(model != 'lrReg') {
     
     # predict from each of the bootstrapped models and stack them together
-    boots_out <- raster::stack(lapply(model_outs$Bootstrapped_models, FUN = function(x) predict(env_data, x, type=type, index=index)))
+    boots_out <- terra::c(lapply(model_outs$Bootstrapped_models, FUN = function(x) predict(env_data, x, type=type, index=index)))
     
     ## quantiles
     print(paste0('#####   getting quantiles   #####'))
@@ -492,7 +498,7 @@ get_predictions <- function(model_outs,
     print(paste0('#####   predicting for lrReg bootstrapped models   #####'))
     
     ## convert variables to matrix
-    covsMat <- as.matrix(rasterToPoints(env_data)) # convert variables to matrix
+    covsMat <- as.matrix(ENMTools::rasterToPoints2(env_data)) # convert variables to matrix
     
     ## predict from lrReg model
     boots <- stack(lapply(model_outs$Bootstrapped_models, FUN = function(x) {
@@ -595,8 +601,8 @@ c_en <- function(occ){
 }
 
 ### Thin records from Richard Hassall
-thin_records = function(occs, templateGrid){
-  require(raster)
+thin_records <- function(occs, templateGrid){
+  require(terra)
   require(sp)
   
   # set where to store temporary raster files...

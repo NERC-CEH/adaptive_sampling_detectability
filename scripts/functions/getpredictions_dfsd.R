@@ -1,6 +1,6 @@
 get_predictions_dfsd <- function(model_outs, 
-                            model, # model that was run to create the models in model_outs
-                            env_data) {
+                                 model, # model that was run to create the models in model_outs
+                                 env_data) {
   
   # choose the type and index for predict function
   if(model == 'lr'|model == 'gam'){
@@ -17,7 +17,7 @@ get_predictions_dfsd <- function(model_outs,
   }
   
   # number of bootstraps that were run
-  k = length(model_outs)
+  k = length(model_outs$Bootstrapped_models)
   sdm = model_outs
   
   ## bootstrapped models
@@ -28,24 +28,28 @@ get_predictions_dfsd <- function(model_outs,
   if(model != 'lrReg') {
     
     # predict from each of the bootstrapped models and stack them together
-    boots_out <- lapply(sdm$Bootstrapped_models, FUN = function(x) predict(x, newdata = env_data, type=type, index=index))
+    boots_out <- lapply(sdm$Bootstrapped_models, FUN = function(x) predict(x, 
+                                                                           newdata = env_data, 
+                                                                           type = type, 
+                                                                           index = index))
     
     ## quantiles
     print(paste0('#####   getting quantiles   #####'))
-    mean_preds <- Reduce("+", boots_out)/length(boots_out) # the mean
-    if(model %in% c("lr", "me", "gam")){
-    sd_preds <- rowVars(simplify2array(boots_out), na.rm=TRUE, std = TRUE) } else if(model == "rf"){
-      sd_preds <- rowVars(simplify2array(boots_out)[,2,], na.rm=TRUE, std = TRUE)
-    }
-   
     
+    mean_preds <- Reduce("+", boots_out)/length(boots_out) # the mean
+    
+    if(model %in% c("lr", "me", "gam")){
+      sd_preds <- rowVars(simplify2array(boots_out), na.rm=TRUE, std = TRUE) 
+      } else if(model == "rf") {
+        sd_preds <- rowVars(simplify2array(boots_out)[,2,], na.rm=TRUE, std = TRUE)
+      }
     
   } else if(model == 'lrReg') { 
     
     print(paste0('#####   predicting for lrReg bootstrapped models   #####'))
     
     ## convert variables to matrix
-    covsMat <- as.matrix(rasterToPoints(env_data)) # convert variables to matrix
+    covsMat <- as.matrix(ENMTools::rasterToPoints2(env_data)) # convert variables to matrix
     
     ## predict from lrReg model
     boots <- stack(lapply(sdm$Bootstrapped_models, FUN = function(x) {
@@ -87,7 +91,7 @@ get_predictions_dfsd <- function(model_outs,
       print(paste0('#####   getting quantiles lrReg   #####'))
       mean_preds <- mean(boots) # where all models are intercept-only, takes the mean to avoid errors later but AUC scores are NA which means they are dropped for final ensembles
       sd_preds <- rowVars(simplify2array(boots_out), na.rm=TRUE, std = TRUE)
-     
+      
       
       
     } else {
@@ -106,4 +110,4 @@ get_predictions_dfsd <- function(model_outs,
   return(list(mean_predictions = mean_preds,
               sd_predictions = sd_preds))
   
-  }
+}

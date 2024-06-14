@@ -149,17 +149,11 @@ simulate_species <- function(env_data,
     occs$sample.points <- occs$sample.points[occs$sample.points$Real == 1,]
     occs$sample.points$Observed[occs$sample.points$Observed == 0] <- NA
     
-    #subset environmental variables for modelling
-    model_variables <- sample(pa$details$variables, 
-                              size = round(length(pa$details$variables)*(2/3)), 
-                              replace = FALSE)
-    
     #store required outputs to list
     community[[i]] <- list(true_prob_occ = wrap(pa$probability.of.occurrence), # need to wrap rasters for saving, then use terra::unwrap
                            pres_abs = wrap(pa$pa.raster), 
                            observations = occs$sample.points, 
                            variables = pa$details$variables, 
-                           model_variables = model_variables, 
                            prevalence = prevalence,
                            detection_probability = det_prob,
                            niche_breadth = niche_breadth)

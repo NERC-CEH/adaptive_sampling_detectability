@@ -1,18 +1,20 @@
 #' # Run all simulated species
 #' 
 slurm_run_sim_sdm <- function(index, 
-                              spdata, 
+                              community_data, 
                               model, 
                               data_type, 
                               writeRas, 
                               GB, 
+                              environmental_subset = (2/3), # what proportion of environmental layers should be used for modelling? If NULL, use all
                               community_version, 
                               AS_version, 
                               simulation_run_name, 
                               n_communities, 
                               n_species,
                               function_path,
-                              outpath){
+                              outpath,
+                              envpath){
   
   library(terra)
   library(virtualspecies)
@@ -21,18 +23,22 @@ slurm_run_sim_sdm <- function(index,
   library(Rfast)
   library(mgcv)
   library(randomForest)
+  library(ENMTools)
   #library(rgdal)
   
   source(paste0(function_path,"reformat_simulated_data.R"))
   source(paste0(function_path, "Edited_Rob_Functions.R"))
+  source(paste0(function_path,"getpredictions_dfsd.R"))
+  
   
   # remove this
   # dirs <- config::get("LOTUSpaths")
   
   ## 1. Simulate distributions (or read in simulated spp)
   
-  #now matches output format of slurm_simulate_species.R - can be changed?
-  community <- readRDS(as.character(spdata))
+  # load community data
+  print("! reading community file")
+  community <- readRDS(as.character(community_data))
   
   #' ## 2. Create input data for models
   #' 
@@ -46,7 +52,7 @@ slurm_run_sim_sdm <- function(index,
   #read in env data frame
   
   if(GB) {
-    hbv_y <- terra::rast(paste0(envdata,"envdata_1km_no_corr_noNA.grd"))
+    hbv_y <- terra::rast(paste0(envpath,"envdata_1km_no_corr_noNA.grd"))
     hbv_df <- as.data.frame(hbv_y, xy = TRUE) # read.csv(paste0(envdata, "hbv_df_1km.csv"))
   } else { ### sort this out to crop extent for testing - not toooooo sure what this does?
     hbv_y <- terra::rast(paste0(dirs$inpath,"hbv_y.grd")) 
@@ -56,9 +62,13 @@ slurm_run_sim_sdm <- function(index,
   presences_df <- reformat_simulated_data(community, year = 2015, species_name = 'Sp')
   #head(presences_df)
   
+  # get pseudoabsences ofr each species
+  print("! Generating pseudoabsences")
+  
   species_list <- unique(presences_df$species)
   
   pres_abs <- vector('list', length = length(species_list))
+  
   
   for(s in 1:length(species_list)){
     
@@ -70,15 +80,14 @@ slurm_run_sim_sdm <- function(index,
   
   names(pres_abs) <- species_list
   
-  #' Pseudoabsence weighting dependent on model, Thomas' code has this accounted for
   
+  #' Pseudoabsence weighting dependent on model, Thomas' code has this accounted for
   
   #' 3. Run DECIDE models 
   #' 
   #' Initially we can run just the logistic regression models as a test
   
-  #source code from Thomas' workflow
-  source(paste0(function_path,"getpredictions_dfsd.R"))
+  print("! starting modelling")
   
   #loop over all 10 species - set up for LOTUS
   
@@ -90,27 +99,36 @@ slurm_run_sim_sdm <- function(index,
   species <- sp_list[index]
   
   #subset envdata for species of interest  
-  env_data <- subset(hbv_y, subset = community[[index]]$model_variables)
+  env_data <- subset(hbv_y, subset = community[[index]]$variables)
   
-  #use only a 2/3 proportion of the environmental data to run the models to reduce model fit
-  #env_index <- sample(1:dim(env_data_full)[3], size = round(dim(env_data_full)[3]*(2/3)), replace = FALSE)
+  # use subset of data for modelling to reduce model performance?
+  if(!is.null(environmental_subset)) {
+    
+    print(paste("! using only a random subset of",  round(dim(env_data)[3]*environmental_subset), 
+                "of the",  dim(env_data)[3], "environmental layers"))
+    
+    #use only a proportion of the environmental data to run the models to reduce model fit
+    env_index <- sample(1:dim(env_data)[3], 
+                        size = round(dim(env_data)[3]*environmental_subset), 
+                        replace = FALSE)
+    
+    # subset environmental data for the model run
+    env_data <- env_data[[env_index]]
+  }
   
-  #subset environmental data for the model run
-  #env_data <- env_data_full[[env_index]]
-  
-  #set parameters
-  model <- model
-  
-  
-  #run model for first species
+  # run species distribution model
   sdm <- fsdm(species = species, model = model,
               climDat = env_data, spData = pres_abs, knots_gam = 4,
               k = k, 
               write =  FALSE, outPath = paste0(dirs$outpath))
   
   #predictions
+  print("! predicting to full dataset")
   
-  preds1 <- get_predictions_dfsd(sdm, model, hbv_df)
+  # when model is rf - it's normal to have two columns - accounted for later!!!
+  preds1 <- get_predictions_dfsd(model_outs = sdm, 
+                                 model = model, # model that was run to create the models in model_outs
+                                 env_data = hbv_df)
   
   ## save files ##
   species_name <- gsub(pattern = ' ', replacement = '_', species) # get species name without space
@@ -129,7 +147,7 @@ slurm_run_sim_sdm <- function(index,
     dir.create(paste0(outPath, community_version, 'sdm_plots/'))
     
     # save prediction raster
-    writeRaster(x = rasterFromXYZ(cbind(hbv_df$x,hbv_df$y,preds1$mean_predictions)), 
+    writeRaster(x = rast(cbind(hbv_df$x,hbv_df$y,preds1$mean_predictions), type = "xyz"), 
                 filename = paste0(outPath, community_version, 'sdm_plots/', model, "_SDMs_", species_name, "_meanpred.grd"),
                 format = 'raster', overwrite = T)
     
@@ -171,7 +189,7 @@ slurm_run_sim_sdm <- function(index,
   # remove data from model output
   sdm$Data <- NULL
   
-  community_name <- strsplit(as.character(spdata),"\\/")[[1]][10]
+  community_name <- strsplit(as.character(community_data),"\\/")[[1]][10]
   
   # output of model to store
   model_output <- list(community_version,
@@ -188,7 +206,7 @@ slurm_run_sim_sdm <- function(index,
   dir.create(paste0(outPath, community_version, "species_models/"))
   
   print("#####     Saving output     #####") ## to check if the process is hanging on lotus
-  #### Figure out how to save with the new AS version name
+  
   save(model_output, file = paste0(outPath, community_version, "species_models/", ifelse(data_type!='initial', paste0(AS_version, '_'), ''), community_version, model, "_SDMs_GBnew_", species_name, "_", data_type, ".rdata"))
   
   print("#####     Output saved     #####")
