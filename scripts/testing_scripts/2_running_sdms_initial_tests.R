@@ -7,24 +7,23 @@ dirs <- config::get("Cdrive_thomas")
 source("scripts/lotus/lotus_functions/slurm_run_sim_sdm_function.R")
 
 # ## testing for a single species/community
+# 
 # index = 1
 # community_data = "outputs/communities/v1narrow_nichebreadth_community/v1community_1_100_sim/v1community_1_100_sim_initial.rds" # location of the community data
 # model = "rf" # which models to use
 # data_type = "initial"
 # writeRas = FALSE
 # GB = TRUE
-# environmental_subset = (2/3) # what proportion of environmental layers should be used for modelling? If NULL, use all
+# environmental_subset = (2/3) # what proportion of environmental layers should be used for modelling?
 # community_version = "v1"
-# simulation_run_name = "equal_prevalance_community"
+# simulation_run_name = "equal_prevalence_community"
 # AS_version = "asv1"
 # n_communities = 1
 # n_species = 100
-# 
 # function_path = dirs$functionpath
-# 
-# outpath = dirs$outputpath
-# 
-# envdata = dirs$envpath
+# outpath = dirs$commpath
+# envpath = dirs$envpath
+
 
 
 
@@ -38,12 +37,12 @@ sdm <- slurm_run_sim_sdm(
   GB = TRUE,
   environmental_subset = (2/3), # what proportion of environmental layers should be used for modelling?
   community_version = "v1",
-  simulation_run_name = "equal_prevalance_community",
+  simulation_run_name = "equal_prevalence_community",
   AS_version = "asv1",
   n_communities = 1,
   n_species = 100,
   function_path = dirs$functionpath,
-  outpath = dirs$outputpath,
+  outpath = dirs$commpath,
   envpath = dirs$envpath
 )
 

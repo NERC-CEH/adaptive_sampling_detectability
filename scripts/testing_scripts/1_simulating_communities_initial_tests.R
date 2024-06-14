@@ -10,14 +10,14 @@ source("scripts/lotus/lotus_functions/slurm_simulate_species_function.R")
 # seed = 1 # community number
 # max_samp = 20000 # max number of observations per species
 # n_env = 10 # number of environmental variables from which to sample for species generation
-# n = 5 # number of species per community
+# n = 100 # number of species per community
 # detect_prob = "uniform" # detection probability
 # sample_across_species = TRUE # whether to sample the same locations across all species (i.e. list structure) or sample different locations for each species
 # niche_breadth = "any"
 # effort = "data/effort_layers/butterfly_1km_effort_layer.grd" # sampling effort layer
 # background = "MeanDiRange" # a layer which contains a value for each cell in the region of interest
 # community_version_name = "v1" # Which community version
-# simulation_run_name = 'first_community'
+# simulation_run_name = 'narrow_nichebreadth_community'
 # 
 # extent = NULL
 # weight_adj = 1

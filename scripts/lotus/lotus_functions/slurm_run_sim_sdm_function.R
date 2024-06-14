@@ -120,7 +120,7 @@ slurm_run_sim_sdm <- function(index,
   sdm <- fsdm(species = species, model = model,
               climDat = env_data, spData = pres_abs, knots_gam = 4,
               k = k, 
-              write =  FALSE, outPath = paste0(dirs$outpath))
+              write =  FALSE, outPath = outpath)
   
   #predictions
   print("! predicting to full dataset")
@@ -134,7 +134,7 @@ slurm_run_sim_sdm <- function(index,
   species_name <- gsub(pattern = ' ', replacement = '_', species) # get species name without space
   
   # create the output path to be in the community that the species belongs to
-  outPath <- paste0(dirs$outpath, community_version, simulation_run_name,'/', community_version, "community_",n_communities,"_", n_species, "_sim/")
+  outPath <- paste0(outpath, community_version, simulation_run_name,'/', community_version, "community_",n_communities,"_", n_species, "_sim/")
   
   #' Calculate very simple DECIDE score - prediction * standard deviation
   
@@ -189,7 +189,7 @@ slurm_run_sim_sdm <- function(index,
   # remove data from model output
   sdm$Data <- NULL
   
-  community_name <- strsplit(as.character(community_data),"\\/")[[1]][10]
+  community_name <- basename(community_data) #strsplit(as.character(community_data),"\\/")[[1]][10]
   
   # output of model to store
   model_output <- list(community_version,
