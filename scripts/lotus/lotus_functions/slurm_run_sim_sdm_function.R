@@ -48,7 +48,7 @@ slurm_run_sim_sdm <- function(index,
   if(GB) {
     hbv_y <- terra::rast(paste0(envdata,"envdata_1km_no_corr_noNA.grd"))
     hbv_df <- as.data.frame(hbv_y, xy = TRUE) # read.csv(paste0(envdata, "hbv_df_1km.csv"))
-  } else { ### sort this out to crop extent for testing
+  } else { ### sort this out to crop extent for testing - not toooooo sure what this does?
     hbv_y <- terra::rast(paste0(dirs$inpath,"hbv_y.grd")) 
     hbv_df <- readRDS(paste0(dirs$inpath, "hbv_df.rds"))
   }

@@ -105,7 +105,7 @@ simulate_species <- function(env_data,
     } else if(is.numeric(detect_prob)) {
       det_prob <- detect_prob
     } else {
-      stop("!! 'detect_prob' must be a number between 0-1, 'beta' or 'uniform'")
+      stop("!! 'detect_prob' must be a number between 0-1, 'beta' or 'uniform'") # could add option to add custom function?
     }
     
     #subset env raster

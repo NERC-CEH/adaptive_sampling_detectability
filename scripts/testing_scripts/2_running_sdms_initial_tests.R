@@ -80,25 +80,21 @@ outpath = dirs$outputpath
 envdata = dirs$envpath
 
 
-## run the function
+## testing
 
 
+## run the function for one community
 sdm <- slurm_run_sim_sdm(
-  index = rep(n_species, length(n_communities)*length(models)*length(data_type)),
-  spdata = rep(sprintf(
-    paste0(dirs$commpath, community_version, simulation_run_name,"/", community_version,
-           "community_%i_%i_sim/", ifelse(data_type!='initial', paste0(AS_version, '_'), ''), community_version, "community_%i_%i_sim_%s.rds"), 
-    rep(rep(n_communities, each = length(models)), each = length(data_type)), max(n_species), 
-    rep(rep(n_communities, each = length(models)), each = length(data_type)), max(n_species), data_type
-  ), each = length(n_species)), # location of all the community data
-  model = rep(rep(rep(models, length(n_communities)), each = length(data_type)), each = length(n_species)), # which models to use
-  data_type = rep(rep(data_type, length(n_communities)*length(models)), each = length(n_species)), 
+  index = 1,
+  spdata = "outputs/communities/v1narrow_nichebreadth_community/v1community_1_100_sim/v1community_1_100_sim_initial.rds", # location of the community data
+  model = "rf", # which models to use
+  data_type = "initial", 
   writeRas = FALSE,
   GB = TRUE,
-  community_version = community_version,
-  simulation_run_name = simulation_run_name,
-  AS_version = AS_version,
-  n_communities = rep(rep(rep(n_communities, each = length(models)), each = length(data_type)), each = length(n_species)),
-  n_species = max(n_species)
+  community_version = "v1",
+  simulation_run_name = "equal_prevalance_community",
+  AS_version = "asv1",
+  n_communities = 1,
+  n_species = 100
 )
 

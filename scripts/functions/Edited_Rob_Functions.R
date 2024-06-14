@@ -396,7 +396,7 @@ cpa <- function (spdat, species, minYear, maxYear, nAbs, matchPres = FALSE,
     ## if screenRaster is specified, check if any presence or absence points fall outside of the raster extent (i.e. they are NA).
     ## If some data fall outside of the extent of the covariates, drop them, and drop the equivalent number of absences or presences
     ## to ensure they are equal in number.
-    ## if matchPres == FALSE and screenRaster = TRUE then some species might have number Presence > number pseudoabsence
+    ## if matchPres ==FALSE and screenRaster = TRUE then some species might have number Presence > number pseudoabsence
     ## because absences might happen to fall in NA values
     ## This is addressed in the fsdm() function
     
