@@ -1,9 +1,24 @@
 # function to generate new data based on existing locations and model
 
-slurm_adaptive_sample <- function(rownum, community_file, sdm_path, effort, background, env_data, extent_crop = NULL, probability_weight_adj, weight_adj, model = c("rf", "gam", "lr"), method, n = 100, uptake = NULL, community_version, AS_version, outPath){
+slurm_adaptive_sample <- function(rownum, 
+                                  community_file, 
+                                  sdm_path, 
+                                  effort, 
+                                  background, 
+                                  env_data, 
+                                  extent_crop = NULL,
+                                  probability_weight_adj,
+                                  weight_adj, 
+                                  model = c("rf", "gam", "lr"), 
+                                  method, 
+                                  n = 100, 
+                                  uptake = NULL, 
+                                  community_version, 
+                                  AS_version, 
+                                  outPath){
   
-  # print the row number from the pars file
-  print(rownum)
+  # # print the row number from the pars file
+  # print(rownum)
   print(method)
   print(community_file)
   
@@ -18,7 +33,7 @@ slurm_adaptive_sample <- function(rownum, community_file, sdm_path, effort, back
   
   #import env_data if specified
   if(!is.null(env_data)){
-    env <- raster::stack(as.character(env_data))
+    env <- terra::rast(as.character(env_data))
     
     #crop to extent if specified
     if(!is.null(extent_crop)){
@@ -27,7 +42,7 @@ slurm_adaptive_sample <- function(rownum, community_file, sdm_path, effort, back
       
       e.geo <- sp::spTransform(e, CRS("+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +units=m +no_defs"))
       
-      env_extent <- raster::crop(env, e.geo)
+      env_extent <- terra::crop(env, e.geo)
       
     } else {env_extent <- env}
     
@@ -36,23 +51,48 @@ slurm_adaptive_sample <- function(rownum, community_file, sdm_path, effort, back
   #set background if given, can indicate a layer in env_data or be a filepath to a raster
   if(is.numeric(background)){
     bg_layer <- env_extent[[background]]
-  } else if ((is.character(background)|is.factor(background)) & !grepl("\\.", background)) {bg_layer <- raster::subset(env_extent, background)} else if ((is.character(background)|is.factor(background)) & grepl("\\.", background)) {bg_layer <- raster::raster(as.character(background))} else {bg_layer <- NULL}
+  } else if ((is.character(background)|is.factor(background)) & !grepl("\\.", background)) {
+    bg_layer <- terra::subset(env_extent, background)
+  } else if ((is.character(background)|is.factor(background)) & grepl("\\.", background)) {
+    bg_layer <- terra::rast(as.character(background))
+  } else { bg_layer <- NULL }
   
   #extract effort layer from raster if provided (note currently uses layers in existing raster stack, could read in other layers)
-  if(is.numeric(effort)){eff_layer <- env_extent[[effort]]} else if((is.character(effort)|is.factor(effort)) & !grepl("\\.", effort)) {eff_layer <- raster::subset(env_extent,effort)} else if ((is.character(effort)|is.factor(effort)) & grepl("\\.", effort)) {eff_layer <- raster::raster(as.character(effort))} else  {eff_layer <- NULL}
+  if(is.numeric(effort)){ 
+    eff_layer <- env_extent[[effort]] 
+  } else if((is.character(effort)|is.factor(effort)) & !grepl("\\.", effort)) {
+    eff_layer <- terra::subset(env_extent,effort)
+  } else if ((is.character(effort)|is.factor(effort)) & grepl("\\.", effort)) {
+    eff_layer <- terra::rast(as.character(effort))
+  } else { eff_layer <- NULL }
   
-  if(is.null(eff_layer)){eff_weights <- (env_extent[[1]]*0)+1} else if (is.null(bg_layer)){
-    eff_weights <- eff_layer/weight_adj} else {eff_weights <- (bg_layer/bg_layer) + (eff_layer/weight_adj)}
+  if(is.null(eff_layer)){ 
+    eff_weights <- (env_extent[[1]]*0)+1
+  } else if (is.null(bg_layer)) {
+    eff_weights <- eff_layer/weight_adj
+  } else {
+    
+    # ensure extents match
+    if(ext(bg_layer)!=ext(eff_layer)) {
+      
+      # extend both to match each other
+      bg_layer <- extend(bg_layer, eff_layer)
+      eff_layer <- extend(eff_layer, bg_layer)
+      
+    }
+    
+    eff_weights <- (bg_layer/bg_layer) + (eff_layer/weight_adj)
+    
+  }
   
-  eff_df <- raster::as.data.frame(eff_weights, xy=TRUE, na.rm=TRUE) 
+  eff_df <- terra::as.data.frame(eff_weights, xy=TRUE, na.rm=TRUE) 
   
   # un-comment when finished debugging - this will work as long as eff_layer only has one layer
   colnames(eff_df) <- c('x', 'y', 'layer')
   
   #get species list from length of community list
-  species_list <- vector()
-  for (i in 1:length(community)){species_list[i] <- paste0("Sp",i)}
-  
+  species_list <- paste0("Sp",1:length(community))
+
   #for each species on the list, extract the relevant model outputs (this allows for some models to fail for some species)
   
   community_preds <- list()
@@ -89,9 +129,11 @@ slurm_adaptive_sample <- function(rownum, community_file, sdm_path, effort, back
     #try(mod_average$mean <- mod_average$mean*(1-prevalence_vec[j]))
     
     #store only the model average for now - could edit to store the individual model outputs if needed
-    if(is.null(nrow(mod_average))){community_preds[[j]] <- NULL} else { community_preds[[j]] <- mod_average; names(community_preds)[j] <- species}
-    
-    
+    if(is.null(nrow(mod_average))){ 
+      community_preds[[j]] <- NULL
+    } else { 
+        community_preds[[j]] <- mod_average
+        names(community_preds)[j] <- species}
   }
   
   # print a little output message
@@ -278,11 +320,12 @@ slurm_adaptive_sample <- function(rownum, community_file, sdm_path, effort, back
   for (i in 1:length(community)){
     # print(paste("NAs in coordinates? =", as.character(any(is.na(new_coords)))))
     observations <- data.frame(sp::coordinates(new_coords)[,1:2])
-    observations$Real <- raster::extract(community[[i]]$pres_abs, observations)
+    observations$Real <- terra::extract(unwrap(community[[i]]$pres_abs), observations, ID = FALSE)
+    colnames(observations) <- c("x", "y", "Real")
     observations <- observations[observations$Real == 1,]#remove absences to create presence-only data?
-    observations$Observed <- observations$Real * (rbinom(nrow(observations),1,0.2)) # are species detected?
+    observations$Observed <- observations$Real * (rbinom(nrow(observations),1,community[[i]]$detection_probability)) # are species detected?
     observations <- observations[!is.na(observations$x),]#remove missing locs
-    if(nrow(observations)>0) observations[observations == 0] <- NA # set places where no individual was observed to NA - $Observed added to dea
+    if(nrow(observations)>0) observations[which(observations$Observed == 0),] <- NA # set places where no individual was observed to NA - $Observed added to dea
     names(observations) <- c("lon", "lat", "Real", "Observed")
     new.obs[[i]] <- list()
     new.obs[[i]]$observations <- observations
