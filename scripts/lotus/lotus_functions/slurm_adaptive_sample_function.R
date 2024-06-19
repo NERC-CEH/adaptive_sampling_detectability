@@ -19,7 +19,7 @@ slurm_adaptive_sample <- function(rownum,
   
   # # print the row number from the pars file
   # print(rownum)
-  print(method)
+  print(paste("! Sampling using the", method, "method"))
   print(community_file)
   
   #get rdata files with model outputs for each model/species (assuming communities are stored in separate folders) - only read initial models
@@ -73,11 +73,11 @@ slurm_adaptive_sample <- function(rownum,
   } else {
     
     # ensure extents match
-    if(ext(bg_layer)!=ext(eff_layer)) {
+    if(terra::ext(bg_layer)!=terra::ext(eff_layer)) {
       
       # extend both to match each other
-      bg_layer <- extend(bg_layer, eff_layer)
-      eff_layer <- extend(eff_layer, bg_layer)
+      bg_layer <- terra::extend(bg_layer, eff_layer)
+      eff_layer <- terra::extend(eff_layer, bg_layer)
       
     }
     
@@ -137,7 +137,7 @@ slurm_adaptive_sample <- function(rownum,
   }
   
   # print a little output message
-  print(paste("Finished processing all species in community", strsplit(basename(as.character(community_file)),"\\.")[[1]][1]))
+  print(paste("! Finished processing all species in community", strsplit(basename(as.character(community_file)),"\\.")[[1]][1]))
   
   #average across all species in community (which can be modelled) to obtain a single prevalence, uncertainty and DECIDE score
   
@@ -146,15 +146,16 @@ slurm_adaptive_sample <- function(rownum,
   community_scores <- Reduce(`+`, community_preds)/length(community_preds)
   
   if (method == "none"){
+    
     cell_weights <- eff_df$layer/sum(eff_df$layer, na.rm=TRUE)
     #assign NA values the average weight
     cell_weights[is.na(cell_weights)] <- mean(cell_weights, na.rm= TRUE)
     #sample new locations according to cell weights
     new_locs <- sample(1:nrow(eff_df), size = n, replace = FALSE, prob = cell_weights)
     new_coords <- eff_df[new_locs, 1:2]
-  }
-  
-  if (method == "uncertainty"){    #merge with existing sampling bias if uptake isn't NULL
+    
+  } else if (method == "uncertainty"){    #merge with existing sampling bias if uptake isn't NULL
+    
     if(is.null(uptake)){
       cell_weights <- community_scores$sd/sum(community_scores$sd, na.rm=TRUE)
       #assign NA values the average weight
@@ -176,9 +177,9 @@ slurm_adaptive_sample <- function(rownum,
       new_locs <- sample(1:nrow(comb_df), size = n, replace = FALSE, prob = cell_weights)
       new_coords <- comb_df[new_locs, 1:2]
     }
-  }
-  
-  if (method == "prevalence"){
+    
+  } else if (method == "prevalence") {
+    
     #merge with existing sampling bias if uptake isn't NULL
     if(is.null(uptake)){
       cell_weights <- community_scores$mean/sum(community_scores$mean, na.rm=TRUE)
@@ -201,9 +202,9 @@ slurm_adaptive_sample <- function(rownum,
       new_locs <- sample(1:nrow(comb_df), size = n, replace = FALSE, prob = cell_weights)
       new_coords <- comb_df[new_locs, 1:2]
     }
-  }
-  
-  if (method == "unc_plus_prev"){
+    
+  } else if (method == "unc_plus_prev"){
+    
     #merge with existing sampling bias if uptake isn't NULL
     if(is.null(uptake)){
       cell_weights <- community_scores$DECIDE_score/sum(community_scores$DECIDE_score, na.rm=TRUE)
@@ -226,9 +227,9 @@ slurm_adaptive_sample <- function(rownum,
       new_locs <- sample(1:nrow(comb_df), size = n, replace = FALSE, prob = cell_weights)
       new_coords <- comb_df[new_locs, 1:2]
     }
-  }
-  
-  if (method == "coverage"){
+    
+  } else if (method == "coverage"){
+    
     # if(is.null(eff_layer)) stop("Cannot adaptively sample using method 'coverage' without specifying an existing sampling raster (i.e. currently eff_layer = NULL)")
     
     require(tidyverse)
@@ -264,9 +265,8 @@ slurm_adaptive_sample <- function(rownum,
       new_coords_effort <- eff_df[new_locs_effort, 1:2]
       new_coords <- rbind(new_coords_empty, new_coords_effort) # bind the new coords together
     }
-  }
-  
-  if (method == "unc_plus_recs"){
+    
+  } else if (method == "unc_plus_recs"){
     
     require(tidyverse)
     
@@ -309,6 +309,11 @@ slurm_adaptive_sample <- function(rownum,
       new_coords <- comb_df_eff[new_locs, 1:2]
     }
     
+  } else {
+    
+    stop("!!! Method must be one of c('none', 'uncertainty', 'prevalence', 'unc_plus_prev', 
+         'unc_plus_recs', 'coverage')")
+    
   }
   
   
@@ -320,7 +325,7 @@ slurm_adaptive_sample <- function(rownum,
   for (i in 1:length(community)){
     # print(paste("NAs in coordinates? =", as.character(any(is.na(new_coords)))))
     observations <- data.frame(sp::coordinates(new_coords)[,1:2])
-    observations$Real <- terra::extract(unwrap(community[[i]]$pres_abs), observations, ID = FALSE)
+    observations$Real <- terra::extract(terra::unwrap(community[[i]]$pres_abs), observations, ID = FALSE)
     colnames(observations) <- c("x", "y", "Real")
     observations <- observations[observations$Real == 1,]#remove absences to create presence-only data?
     observations$Observed <- observations$Real * (rbinom(nrow(observations),1,community[[i]]$detection_probability)) # are species detected?
@@ -344,4 +349,7 @@ slurm_adaptive_sample <- function(rownum,
   
   saveRDS(community_AS, file = paste0(outPath, AS_version, '_', community_name, "_AS_", method, ".rds"))
   
+  print("! All done")
+  # "outputs/communities/v1narrow_nichebreadth_community/v1community_1_100_sim/asv1_v1community_1_100_sim_initial_AS_unc_plus_recs.rds"
+  # "outputs\communities\v1narrow_nichebreadth_community\v1community_1_100_sim"
 }
