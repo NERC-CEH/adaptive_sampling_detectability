@@ -24,8 +24,7 @@ slurm_run_sim_sdm <- function(index,
   library(mgcv)
   library(randomForest)
   library(ENMTools)
-  #library(rgdal)
-  
+
   source(paste0(function_path,"reformat_simulated_data.R"))
   source(paste0(function_path, "Edited_Rob_Functions.R"))
   source(paste0(function_path,"getpredictions_dfsd.R"))
@@ -59,7 +58,9 @@ slurm_run_sim_sdm <- function(index,
     hbv_df <- readRDS(paste0(dirs$inpath, "hbv_df.rds"))
   }
   
-  presences_df <- reformat_simulated_data(community, year = 2015, species_name = 'Sp')
+  presences_df <- reformat_simulated_data(sim_species_out = community, 
+                                          year = 2015, 
+                                          species_name = 'Sp')
   #head(presences_df)
   
   # get pseudoabsences ofr each species
@@ -210,6 +211,11 @@ slurm_run_sim_sdm <- function(index,
   save(model_output, file = paste0(outPath, community_version, "species_models/", ifelse(data_type!='initial', paste0(AS_version, '_'), ''), community_version, model, "_SDMs_GBnew_", species_name, "_", data_type, ".rdata"))
   
   print("#####     Output saved     #####")
+  
+  
+  print(paste("Read files using:", 
+              paste0("readRDS(", 
+                     paste0(outPath, community_version, "species_models/", ifelse(data_type!='initial', paste0(AS_version, '_'), ''), community_version, model, "_SDMs_GBnew_", species_name, "_", data_type, ".rdata"))))
   
   
 }

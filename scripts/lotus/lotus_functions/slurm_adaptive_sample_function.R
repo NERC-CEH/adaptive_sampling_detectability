@@ -1,7 +1,6 @@
 # function to generate new data based on existing locations and model
 
-slurm_adaptive_sample <- function(rownum, 
-                                  community_file, 
+slurm_adaptive_sample <- function(community_file, 
                                   sdm_path, 
                                   effort, 
                                   background, 
@@ -18,7 +17,6 @@ slurm_adaptive_sample <- function(rownum,
                                   outPath){
   
   # # print the row number from the pars file
-  # print(rownum)
   print(paste("! Sampling using the", method, "method"))
   print(community_file)
   
@@ -325,7 +323,8 @@ slurm_adaptive_sample <- function(rownum,
   for (i in 1:length(community)){
     # print(paste("NAs in coordinates? =", as.character(any(is.na(new_coords)))))
     observations <- data.frame(sp::coordinates(new_coords)[,1:2])
-    observations$Real <- terra::extract(terra::unwrap(community[[i]]$pres_abs), observations, ID = FALSE)
+    observations <- cbind(observations, 
+                          terra::extract(terra::unwrap(community[[i]]$pres_abs), observations, ID = FALSE))
     colnames(observations) <- c("x", "y", "Real")
     observations <- observations[observations$Real == 1,]#remove absences to create presence-only data?
     observations$Observed <- observations$Real * (rbinom(nrow(observations),1,community[[i]]$detection_probability)) # are species detected?
@@ -349,7 +348,15 @@ slurm_adaptive_sample <- function(rownum,
   
   saveRDS(community_AS, file = paste0(outPath, AS_version, '_', community_name, "_AS_", method, ".rds"))
   
+  print(paste("! Files have been saved, read them using:", 
+              paste0("readRDS(", 
+                     paste0(outPath, AS_version, '_', community_name, "_AS_", method, ".rds"))))
+  
+  
   print("! All done")
+  
+  return(community_AS)
+  
   # "outputs/communities/v1narrow_nichebreadth_community/v1community_1_100_sim/asv1_v1community_1_100_sim_initial_AS_unc_plus_recs.rds"
   # "outputs\communities\v1narrow_nichebreadth_community\v1community_1_100_sim"
 }

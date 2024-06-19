@@ -246,7 +246,12 @@ simulate_species <- function(env_data,
   
   if(write){
     saveRDS(community, file = paste0(outPath, community_version_name, simulation_run_name,"/", community_version_name, community_name,"/", community_version_name, community_name, "_initial.rds"))
-  }
+  
+    print(paste("! Files have been saved, read them using:", 
+                paste0("readRDS(", 
+                       paste0(outPath, community_version_name, simulation_run_name,"/", community_version_name, community_name,"/", community_version_name, community_name, "_initial.rds"))))
+    
+    }
   
   return(community)
   
