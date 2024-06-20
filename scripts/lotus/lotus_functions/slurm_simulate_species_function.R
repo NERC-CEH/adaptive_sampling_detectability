@@ -2,24 +2,26 @@
 #' Simulate species
 
 
-#' @param env_data 
-#' @param sample_across_species
-#' @param extent = NULL
-#' @param n = 10
-#' @param outPath
-#' @param seed = NULL
-#' @param n_env = NULL
-#' @param beta = 0.5
-#' @param alpha = -0.05
-#' @param max_samp = 1000
-#' @param detect_prob = 0.5
-#' @param effort = NULL 
-#' @param weight_adj = 1 
-#' @param background = NULL
-#' @param niche_breadth = "narrow"
-#' @param community_version_name
-#' @param simulation_run_name
-#' @param write = TRUE
+#' @param env_data Path to the environmental data
+#' @param sample_across_species Logical. Whether to sample the sample the same locations across all species ina community
+#' @param extent_crop extent to crop raster - must be able to be converted to a SpatialPolygons object
+#' @param extent_crs coordinates for the extent
+#' @param n number of species per community
+#' @param outPath Where to store communities 
+#' @param seed The number of communities to simulate, used in set.seed. Used to enable replication of communities
+#' @param n_env  number of environmental variables from which to sample for species generation
+#' @param beta beta value for the convertToPA function
+#' @param alpha alpha value for the convertToPA function
+#' @param max_samp maximum number of records per species
+#' @param detect_prob detection probability. Can be generated in three different ways: "beta" (beta distribution 'rbeta(1, 2,5)'), "uniform" (uniform distribution) or a number between 0-1 (same for all species in a community)
+#' @param effort Specification of the effort layer. Can be a number or name specifying a layer in the environmental data, the location of an effort raster, or NULL. If NULL, no effort
+#' @param weight_adj Adjust the influence that background sampling has on the initial sampling of community
+#' @param background Specification of the background layer to identify where sampling can take place. A layer which contains a value for each cell in the region of interest. Can be a number or name specifying a layer in the environmental data, the location of an effort raster, or NULL. If NULL, no effort 
+#' @param niche_breadth How broad should a species' niche be, see "generateSpFromPCA"
+#' @param community_version_name Name of the community version we are running - so no overwriting occurs
+#' @param simulation_run_name The name of the simulation run
+#' @param write Write outputs or run function without writing?
+#' @export
 
 simulate_species <- function(env_data, 
                              sample_across_species, 
@@ -48,8 +50,6 @@ simulate_species <- function(env_data,
   
   #set seed if specified
   if(!is.null(seed)){set.seed(seed)}
-  # 
-  # for(i in 1:10) if(TRUE) print(rbeta(1, 2, 5))
   
   #crop to extent if specified
   if(!is.null(extent)){

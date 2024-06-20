@@ -52,11 +52,12 @@ sdm <- slurm_run_sim_sdm(
     rep(rep(n_communities, each = length(models)), each = length(data_type)), max(n_species), data_type
   ), # location of the community data
   model = models, # which models to use
+  env_data = paste0(dirs$envpath, "envdata_1km_no_corr_noNA.grd"),
   data_type = data_type, 
   writeRas = FALSE,
   GB = TRUE,
   environmental_subset = (2/3), # what proportion of environmental layers should be used for modelling?
-  community_version = community_version_name,
+  community_version_name = community_version_name,
   simulation_run_name = simulation_run_name,
   AS_version = AS_version,
   n_communities = n_communities,

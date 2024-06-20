@@ -10,7 +10,7 @@
 #' @param env_data SpatRast of environmental data used in the simulate_species function.  
 #' @param extent_crop extent to crop raster - must be able to be converted to a SpatialPolygons object
 #' @param extent_crs coordinates for the extent
-#' @param probability_weight_adj Adjust the influence of bias in the sampling. Use to increase the effect of 
+#' @param probability_weight_adj Adjust the influence of bias in the sampling. Use to increase the effect of the sampling layers
 #' @param weight_adj Adjust the influence that background sampling has on the adaptive sampling methods.
 #' @param model Models to use to do the model-based adaptive sampling methods from 
 #' @param method Adaptive sampling method to use

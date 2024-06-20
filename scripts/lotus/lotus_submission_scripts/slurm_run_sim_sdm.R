@@ -51,7 +51,7 @@ for(asv in 1:nrow(asv_version)){
     
     # pars data frame - written to be able to automatically generate the correct pars file depending on inputs above.
     pars <- data.frame(index = rep(n_species, length(n_communities)*length(models)*length(data_type)),
-                       spdata = rep(sprintf(
+                       community_data = rep(sprintf(
                          paste0(dirs$commpath, community_version, simulation_run_name,"/", community_version,
                                 "community_%i_%i_sim/", ifelse(data_type!='initial', paste0(AS_version, '_'), ''), community_version, "community_%i_%i_sim_%s.rds"), 
                          rep(rep(n_communities, each = length(models)), each = length(data_type)), max(n_species), 
