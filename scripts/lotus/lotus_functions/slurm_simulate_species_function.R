@@ -1,3 +1,26 @@
+
+#' Simulate species
+
+
+#' @param env_data 
+#' @param sample_across_species
+#' @param extent = NULL
+#' @param n = 10
+#' @param outPath
+#' @param seed = NULL
+#' @param n_env = NULL
+#' @param beta = 0.5
+#' @param alpha = -0.05
+#' @param max_samp = 1000
+#' @param detect_prob = 0.5
+#' @param effort = NULL 
+#' @param weight_adj = 1 
+#' @param background = NULL
+#' @param niche_breadth = "narrow"
+#' @param community_version_name
+#' @param simulation_run_name
+#' @param write = TRUE
+
 simulate_species <- function(env_data, 
                              sample_across_species, 
                              extent = NULL, 
@@ -248,8 +271,8 @@ simulate_species <- function(env_data,
     saveRDS(community, file = paste0(outPath, community_version_name, simulation_run_name,"/", community_version_name, community_name,"/", community_version_name, community_name, "_initial.rds"))
   
     print(paste("! Files have been saved, read them using:", 
-                paste0("readRDS(", 
-                       paste0(outPath, community_version_name, simulation_run_name,"/", community_version_name, community_name,"/", community_version_name, community_name, "_initial.rds"))))
+                paste0("'readRDS(", 
+                       paste0(outPath, community_version_name, simulation_run_name,"/", community_version_name, community_name,"/", community_version_name, community_name, "_initial.rds'"))))
     
     }
   

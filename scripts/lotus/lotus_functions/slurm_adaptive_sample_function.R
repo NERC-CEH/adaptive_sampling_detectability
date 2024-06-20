@@ -1,11 +1,33 @@
-# function to generate new data based on existing locations and model
+#' Adaptive sample data
+#' 
+#' Carry out adaptive sampling using six different methods
 
+
+#' @param community_file Location on disk of the community you want to sample as character
+#' @param sdm_path Location on disk of the models that have been run for the community as character
+#' @param effort Specification of the effort layer. Can be a number or name specifying a layer in the environmental data, the location of an effort raster, or NULL. If NULL, no effort 
+#' @param background Specification of the background layer to identify where sampling can take place. Can be a number or name specifying a layer in the environmental data, the location of an effort raster, or NULL. If NULL, no effort 
+#' @param env_data SpatRast of environmental data used in the simulate_species function.  
+#' @param extent_crop extent to crop raster - must be able to be converted to a SpatialPolygons object
+#' @param extent_crs coordinates for the extent
+#' @param probability_weight_adj Adjust the influence of bias in the sampling. Use to increase the effect of 
+#' @param weight_adj Adjust the influence that background sampling has on the adaptive sampling methods.
+#' @param model Models to use to do the model-based adaptive sampling methods from 
+#' @param method Adaptive sampling method to use
+#' @param n Number of new samples to take
+#' @param uptake Value between 0-1 that specifies the amount of uptake of the adaptive sampling method. 1-uptake defines the influence of the background layer on sampling
+#' @param community_version Name of the community version used in simulate_species function
+#' @param AS_version Version of the adaptive sampling round. Use to name what uptake value has been used
+#' @param outPath where to store data. Suggest using the same place as the community file.
+#' @export
+#'
 slurm_adaptive_sample <- function(community_file, 
                                   sdm_path, 
                                   effort, 
                                   background, 
                                   env_data, 
                                   extent_crop = NULL,
+                                  extent_crs = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0",
                                   probability_weight_adj,
                                   weight_adj, 
                                   model = c("rf", "gam", "lr"), 
@@ -18,7 +40,7 @@ slurm_adaptive_sample <- function(community_file,
   
   # # print the row number from the pars file
   print(paste("! Sampling using the", method, "method"))
-  print(community_file)
+  print(paste0("! Reading community file: '", community_file, "'"))
   
   #get rdata files with model outputs for each model/species (assuming communities are stored in separate folders) - only read initial models
   models <- list.files(path = as.character(sdm_path), pattern = paste0("(",paste(model, sep = "", collapse = "|"),")*initial.rdata"))
@@ -36,9 +58,9 @@ slurm_adaptive_sample <- function(community_file,
     #crop to extent if specified
     if(!is.null(extent_crop)){
       e <- as(extent_crop, "SpatialPolygons")
-      sp::proj4string(e) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+      sp::proj4string(e) <- extent_crs
       
-      e.geo <- sp::spTransform(e, CRS("+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +units=m +no_defs"))
+      e.geo <- sp::spTransform(e, terra::crs(env)) # CRS("+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +units=m +no_defs"))
       
       env_extent <- terra::crop(env, e.geo)
       
@@ -73,6 +95,9 @@ slurm_adaptive_sample <- function(community_file,
     # ensure extents match
     if(terra::ext(bg_layer)!=terra::ext(eff_layer)) {
       
+      print(paste("!! 'bg_layer' extent does not match 'eff_layer' extent. 
+                  Extending both to match each other - CHECK THAT THEY OVERLAP !!"))
+      
       # extend both to match each other
       bg_layer <- terra::extend(bg_layer, eff_layer)
       eff_layer <- terra::extend(eff_layer, bg_layer)
@@ -90,7 +115,7 @@ slurm_adaptive_sample <- function(community_file,
   
   #get species list from length of community list
   species_list <- paste0("Sp",1:length(community))
-
+  
   #for each species on the list, extract the relevant model outputs (this allows for some models to fail for some species)
   
   community_preds <- list()
@@ -123,21 +148,19 @@ slurm_adaptive_sample <- function(community_file,
     #average model outputs (note - not weighted by AUC currently)
     mod_average <- Reduce(`+`, model_outputs) / length(model_outputs)
     
-    #multiply mean by 1-prevalence - upweights rare species - now done per model above
-    #try(mod_average$mean <- mod_average$mean*(1-prevalence_vec[j]))
-    
     #store only the model average for now - could edit to store the individual model outputs if needed
     if(is.null(nrow(mod_average))){ 
       community_preds[[j]] <- NULL
     } else { 
-        community_preds[[j]] <- mod_average
-        names(community_preds)[j] <- species}
+      community_preds[[j]] <- mod_average
+      names(community_preds)[j] <- species}
   }
   
   # print a little output message
   print(paste("! Finished processing all species in community", strsplit(basename(as.character(community_file)),"\\.")[[1]][1]))
   
-  #average across all species in community (which can be modelled) to obtain a single prevalence, uncertainty and DECIDE score
+  #average across all species in community (which can be modelled) to obtain a 
+  # single prevalence, uncertainty and DECIDE score
   
   community_preds <- Filter(length, community_preds)
   
@@ -152,8 +175,9 @@ slurm_adaptive_sample <- function(community_file,
     new_locs <- sample(1:nrow(eff_df), size = n, replace = FALSE, prob = cell_weights)
     new_coords <- eff_df[new_locs, 1:2]
     
-  } else if (method == "uncertainty"){    #merge with existing sampling bias if uptake isn't NULL
+  } else if (method == "uncertainty"){
     
+    #merge with existing sampling bias if uptake isn't NULL
     if(is.null(uptake)){
       cell_weights <- community_scores$sd/sum(community_scores$sd, na.rm=TRUE)
       #assign NA values the average weight
@@ -349,8 +373,8 @@ slurm_adaptive_sample <- function(community_file,
   saveRDS(community_AS, file = paste0(outPath, AS_version, '_', community_name, "_AS_", method, ".rds"))
   
   print(paste("! Files have been saved, read them using:", 
-              paste0("readRDS(", 
-                     paste0(outPath, AS_version, '_', community_name, "_AS_", method, ".rds"))))
+              paste0("'readRDS(", 
+                     paste0(outPath, AS_version, '_', community_name, "_AS_", method, ".rds'"))))
   
   
   print("! All done")

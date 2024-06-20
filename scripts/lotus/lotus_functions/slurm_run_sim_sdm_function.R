@@ -1,5 +1,23 @@
 #' # Run all simulated species
-#' 
+
+#' @param index
+#' @param community_data
+#' @param model
+#' @param data_type
+#' @param writeRas
+#' @param GB
+#' @param environmental_subset = (2/3) # what proportion of environmental layers should be used for modelling? If NULL, use all
+#' @param community_version
+#' @param AS_version
+#' @param simulation_run_name
+#' @param n_communities
+#' @param n_species
+#' @param function_path
+#' @param outpath
+#' @param envpath
+#' @export
+
+
 slurm_run_sim_sdm <- function(index, 
                               community_data, 
                               model, 
@@ -157,24 +175,6 @@ slurm_run_sim_sdm <- function(index,
                 filename = paste0(outPath, community_version, 'sdm_plots/', model, "_SDMs_", species_name, "_sdpred.grd"),
                 format = 'raster', overwrite = T)
     
-    
-    #' #' Plot maps
-    #' #' 
-    #' #' 
-    #' png(paste0(outPath,  community_version, 'sdm_plots/', species_name,".png"), height = 200, width = 200, res = 300, units = "mm", pointsize = 14)
-    #' 
-    #' par(mfrow=c(3,2))
-    #' par(mar = c(2,2,2,2))
-    #' plot(community[[index]]$true_prob_occ, main = "Probability of occurrence")
-    #' plot(community[[index]]$pres_abs, main = "Presence absence")
-    #' points(community[[index]]$observations[!is.na(community[[index]]$observations$Observed),1:2], pch = 20)
-    #' plot(rasterFromXYZ(cbind(hbv_df$x,hbv_df$y,preds1$mean_predictions)), main = "Predicted prob. occ")
-    #' plot(rasterFromXYZ(cbind(hbv_df$x, hbv_df$y, preds1$sd_predictions)), main = "Standard deviation of predictions")
-    #' plot(rasterFromXYZ(cbind(hbv_df$x, hbv_df$y, DECIDE_score)), main = "DECIDE score")
-    #' 
-    #' dev.off()
-    
-    
   }
   
   # write AUC to file for easy-access
@@ -214,8 +214,8 @@ slurm_run_sim_sdm <- function(index,
   
   
   print(paste("Read files using:", 
-              paste0("readRDS(", 
-                     paste0(outPath, community_version, "species_models/", ifelse(data_type!='initial', paste0(AS_version, '_'), ''), community_version, model, "_SDMs_GBnew_", species_name, "_", data_type, ".rdata"))))
+              paste0("'readRDS(", 
+                     paste0(outPath, community_version, "species_models/", ifelse(data_type!='initial', paste0(AS_version, '_'), ''), community_version, model, "_SDMs_GBnew_", species_name, "_", data_type, ".rdata'"))))
   
   
 }
