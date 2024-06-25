@@ -42,6 +42,12 @@ slurm_adaptive_sample <- function(community_file,
   print(paste("! Sampling using the", method, "method"))
   print(paste0("! Reading community file: '", community_file, "'"))
   
+  # check method is coded
+  if(!method %in% c('none', 'uncertainty', 'prevalence', 'unc_plus_prev', 
+                    'unc_plus_recs', 'coverage', 'detectability','prev_plus_detect', 'unc_plus_detect')) 
+    stop("'method' must be one of c('none', 'uncertainty', 'prevalence', 'unc_plus_prev', 
+         'unc_plus_recs', 'coverage', 'detectability','prev_plus_detect', 'unc_plus_detect')")
+  
   #get rdata files with model outputs for each model/species (assuming communities are stored in separate folders) - only read initial models
   models <- list.files(path = as.character(sdm_path), pattern = paste0("(",paste(model, sep = "", collapse = "|"),")*initial.rdata"))
   
@@ -428,7 +434,7 @@ slurm_adaptive_sample <- function(community_file,
   } else {
     
     stop("!!! Method must be one of c('none', 'uncertainty', 'prevalence', 'unc_plus_prev', 
-         'unc_plus_recs', 'coverage')")
+         'unc_plus_recs', 'coverage', 'detectability','prev_plus_detect', 'unc_plus_detect')")
     
   }
   
