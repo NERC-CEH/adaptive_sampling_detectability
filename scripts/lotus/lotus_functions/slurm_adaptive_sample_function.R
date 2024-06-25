@@ -140,8 +140,25 @@ slurm_adaptive_sample <- function(community_file,
         model_preds <- model_output$predictions[,names(model_output$predictions) %in% c("x", "y", "mean.1", "sd", "DECIDE_score.1")]
         names(model_preds) <- c("x", "y", "mean", "sd", "DECIDE_score")
       }
-      model_preds$mean_rarity_weight <- model_preds$mean*(1-prevalence_vec[j]) #weight probability of presence by rarity
-      model_preds$DECIDE_score <- model_preds$mean_rarity_weight*model_preds$sd #recalculate DECIDE score with probability of presence weighted by rarity
+      
+      
+      ## Calculate sampling layers based on individual species' characteristics
+      
+      # weight probability of presence by rarity
+      model_preds$mean_rarity_weight <- model_preds$mean*(1-prevalence_vec[j]) 
+      
+      # weight probability of presence by detectability
+      model_preds$mean_detect_weight <- model_preds$mean*(1-detectability_vec[j]) 
+      
+      # weight rarity weighted probability of presence by detectability
+      model_preds$mean_rarity_detect_weight <- model_preds$mean_rarity_weight*(1-detectability_vec[j]) 
+      
+      # recalculate DECIDE score with probability of presence weighted by rarity
+      model_preds$DECIDE_score <- model_preds$mean_rarity_weight*model_preds$sd
+      
+      # weight uncertainty by detectability
+      model_preds$uncertainty_detect_weight <- model_preds$sd*(1-detectability_vec[j])
+      
       model_outputs[[idx]] <- model_preds
       names(model_outputs)[idx] <- model_type
       idx <- idx + 1
@@ -331,6 +348,81 @@ slurm_adaptive_sample <- function(community_file,
       #sample new locations according to cell weights
       new_locs <- sample(1:nrow(comb_df_eff), size = n, replace = FALSE, prob = cell_weights)
       new_coords <- comb_df_eff[new_locs, 1:2]
+    }
+    
+  } else if (method == "detectability") {
+    
+    #merge with existing sampling bias if uptake isn't NULL
+    if(is.null(uptake)){
+      cell_weights <- community_scores$mean_detect_weight/sum(community_scores$mean_detect_weight, na.rm=TRUE)
+      #assign NA values the average weight
+      cell_weights[is.na(cell_weights)] <- mean(cell_weights, na.rm= TRUE)
+      #sample new locations according to cell weights
+      new_locs <- sample(1:nrow(community_scores), size = n, replace = FALSE, prob = cell_weights^probability_weight_adj)
+      new_coords <- community_scores[new_locs, 1:2]
+    }
+    if(!is.null(uptake)){
+      #combine effort and score dataframes
+      comb_df <- merge(eff_df, community_scores, by = c("x", "y"))
+      #standardise both effort and score to 0 to 1
+      comb_df[,3:6] <- apply(comb_df[,3:6],2,FUN = function(x) {x/max(x, na.rm=TRUE)})
+      comb_df$comb_weight <- (comb_df$layer*(1-uptake))+(comb_df$mean_detect_weight*uptake)
+      cell_weights <- comb_df$comb_weight/sum(comb_df$comb_weight, na.rm=TRUE)
+      #assign NA values the average weight
+      cell_weights[is.na(cell_weights)] <- mean(cell_weights, na.rm= TRUE)
+      #sample new locations according to cell weights
+      new_locs <- sample(1:nrow(comb_df), size = n, replace = FALSE, prob = cell_weights)
+      new_coords <- comb_df[new_locs, 1:2]
+    }
+    
+  } else if (method == "prev_plus_detect") {
+    
+    #merge with existing sampling bias if uptake isn't NULL
+    if(is.null(uptake)){
+      cell_weights <- community_scores$mean_rarity_detect_weight/sum(community_scores$mean_rarity_detect_weight, na.rm=TRUE)
+      #assign NA values the average weight
+      cell_weights[is.na(cell_weights)] <- mean(cell_weights, na.rm= TRUE)
+      #sample new locations according to cell weights
+      new_locs <- sample(1:nrow(community_scores), size = n, replace = FALSE, prob = cell_weights^probability_weight_adj)
+      new_coords <- community_scores[new_locs, 1:2]
+    }
+    if(!is.null(uptake)){
+      #combine effort and score dataframes
+      comb_df <- merge(eff_df, community_scores, by = c("x", "y"))
+      #standardise both effort and score to 0 to 1
+      comb_df[,3:6] <- apply(comb_df[,3:6],2,FUN = function(x) {x/max(x, na.rm=TRUE)})
+      comb_df$comb_weight <- (comb_df$layer*(1-uptake))+(comb_df$mean_rarity_detect_weight*uptake)
+      cell_weights <- comb_df$comb_weight/sum(comb_df$comb_weight, na.rm=TRUE)
+      #assign NA values the average weight
+      cell_weights[is.na(cell_weights)] <- mean(cell_weights, na.rm= TRUE)
+      #sample new locations according to cell weights
+      new_locs <- sample(1:nrow(comb_df), size = n, replace = FALSE, prob = cell_weights)
+      new_coords <- comb_df[new_locs, 1:2]
+    }
+    
+  } else if (method == "unc_plus_detect") {
+    
+    #merge with existing sampling bias if uptake isn't NULL
+    if(is.null(uptake)){
+      cell_weights <- community_scores$uncertainty_detect_weight/sum(community_scores$uncertainty_detect_weight, na.rm=TRUE)
+      #assign NA values the average weight
+      cell_weights[is.na(cell_weights)] <- mean(cell_weights, na.rm= TRUE)
+      #sample new locations according to cell weights
+      new_locs <- sample(1:nrow(community_scores), size = n, replace = FALSE, prob = cell_weights^probability_weight_adj)
+      new_coords <- community_scores[new_locs, 1:2]
+    }
+    if(!is.null(uptake)){
+      #combine effort and score dataframes
+      comb_df <- merge(eff_df, community_scores, by = c("x", "y"))
+      #standardise both effort and score to 0 to 1
+      comb_df[,3:6] <- apply(comb_df[,3:6],2,FUN = function(x) {x/max(x, na.rm=TRUE)})
+      comb_df$comb_weight <- (comb_df$layer*(1-uptake))+(comb_df$uncertainty_detect_weight*uptake)
+      cell_weights <- comb_df$comb_weight/sum(comb_df$comb_weight, na.rm=TRUE)
+      #assign NA values the average weight
+      cell_weights[is.na(cell_weights)] <- mean(cell_weights, na.rm= TRUE)
+      #sample new locations according to cell weights
+      new_locs <- sample(1:nrow(comb_df), size = n, replace = FALSE, prob = cell_weights)
+      new_coords <- comb_df[new_locs, 1:2]
     }
     
   } else {
