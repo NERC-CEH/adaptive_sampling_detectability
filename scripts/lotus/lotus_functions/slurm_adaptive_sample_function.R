@@ -140,8 +140,8 @@ slurm_adaptive_sample <- function(community_file,
         model_preds <- model_output$predictions[,names(model_output$predictions) %in% c("x", "y", "mean.1", "sd", "DECIDE_score.1")]
         names(model_preds) <- c("x", "y", "mean", "sd", "DECIDE_score")
       }
-      model_preds$mean <- model_preds$mean*(1-prevalence_vec[j]) #weight probability of presence by rarity
-      model_preds$DECIDE_score <- model_preds$mean*model_preds$sd #recalculate DECIDE score with probability of presence weighted by rarity
+      model_preds$mean_rarity_weight <- model_preds$mean*(1-prevalence_vec[j]) #weight probability of presence by rarity
+      model_preds$DECIDE_score <- model_preds$mean_rarity_weight*model_preds$sd #recalculate DECIDE score with probability of presence weighted by rarity
       model_outputs[[idx]] <- model_preds
       names(model_outputs)[idx] <- model_type
       idx <- idx + 1
@@ -206,7 +206,7 @@ slurm_adaptive_sample <- function(community_file,
     
     #merge with existing sampling bias if uptake isn't NULL
     if(is.null(uptake)){
-      cell_weights <- community_scores$mean/sum(community_scores$mean, na.rm=TRUE)
+      cell_weights <- community_scores$mean_rarity_weight/sum(community_scores$mean_rarity_weight, na.rm=TRUE)
       #assign NA values the average weight
       cell_weights[is.na(cell_weights)] <- mean(cell_weights, na.rm= TRUE)
       #sample new locations according to cell weights
@@ -218,7 +218,7 @@ slurm_adaptive_sample <- function(community_file,
       comb_df <- merge(eff_df, community_scores, by = c("x", "y"))
       #standardise both effort and score to 0 to 1
       comb_df[,3:6] <- apply(comb_df[,3:6],2,FUN = function(x) {x/max(x, na.rm=TRUE)})
-      comb_df$comb_weight <- (comb_df$layer*(1-uptake))+(comb_df$mean*uptake)
+      comb_df$comb_weight <- (comb_df$layer*(1-uptake))+(comb_df$mean_rarity_weight*uptake)
       cell_weights <- comb_df$comb_weight/sum(comb_df$comb_weight, na.rm=TRUE)
       #assign NA values the average weight
       cell_weights[is.na(cell_weights)] <- mean(cell_weights, na.rm= TRUE)
@@ -227,7 +227,7 @@ slurm_adaptive_sample <- function(community_file,
       new_coords <- comb_df[new_locs, 1:2]
     }
     
-  } else if (method == "unc_plus_prev"){
+  } else if (method == "unc_plus_prev"){ # prevalence weighted predictions * uncertainty
     
     #merge with existing sampling bias if uptake isn't NULL
     if(is.null(uptake)){
