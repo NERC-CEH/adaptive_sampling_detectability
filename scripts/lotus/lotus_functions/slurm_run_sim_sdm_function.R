@@ -211,7 +211,11 @@ slurm_run_sim_sdm <- function(index,
                        sdm_output = lapply(sdm$Bootstrapped_models, function(x) summary(x)),
                        number_validations = k,
                        meanAUC = sdm$meanAUC,
-                       predictions = data.frame(x = full_env_data_df$x, y = full_env_data_df$y, mean = preds1$mean_predictions, sd = preds1$sd_predictions, DECIDE_score = DECIDE_score))
+                       predictions = data.frame(x = full_env_data_df$x, 
+                                                y = full_env_data_df$y, 
+                                                mean = preds1$mean_predictions, 
+                                                sd = preds1$sd_predictions, 
+                                                DECIDE_score = DECIDE_score))
   
   # create a new directory to store species SDMs
   dir.create(paste0(outPath, community_version_name, "species_models/"))

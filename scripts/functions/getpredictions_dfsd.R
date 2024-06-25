@@ -40,9 +40,9 @@ get_predictions_dfsd <- function(model_outs,
     
     if(model %in% c("lr", "me", "gam")){
       sd_preds <- rowVars(simplify2array(boots_out), na.rm=TRUE, std = TRUE) 
-      } else if(model == "rf") {
-        sd_preds <- rowVars(simplify2array(boots_out)[,2,], na.rm=TRUE, std = TRUE)
-      }
+    } else if(model == "rf") {
+      sd_preds <- rowVars(simplify2array(boots_out)[,2,], na.rm=TRUE, std = TRUE)
+    }
     
   } else if(model == 'lrReg') { 
     

@@ -51,6 +51,9 @@ slurm_adaptive_sample <- function(community_file,
   #extract prevalence vector
   prevalence_vec <- sapply(community, function(x) x$prevalence)
   
+  #extract detection_probability vector
+  detectability_vec <- sapply(community, function(x) x$detection_probability)
+  
   #import env_data if specified
   if(!is.null(env_data)){
     env <- terra::rast(as.character(env_data))
@@ -95,8 +98,7 @@ slurm_adaptive_sample <- function(community_file,
     # ensure extents match
     if(terra::ext(bg_layer)!=terra::ext(eff_layer)) {
       
-      print(paste("!! 'bg_layer' extent does not match 'eff_layer' extent. 
-                  Extending both to match each other - CHECK THAT THEY OVERLAP !!"))
+      print(paste("!! 'bg_layer' extent does not match 'eff_layer' extent. Extending both to match each other - CHECK THAT THEY OVERLAP !!"))
       
       # extend both to match each other
       bg_layer <- terra::extend(bg_layer, eff_layer)
@@ -138,8 +140,8 @@ slurm_adaptive_sample <- function(community_file,
         model_preds <- model_output$predictions[,names(model_output$predictions) %in% c("x", "y", "mean.1", "sd", "DECIDE_score.1")]
         names(model_preds) <- c("x", "y", "mean", "sd", "DECIDE_score")
       }
-      model_preds$mean <- model_preds$mean*(1-prevalence_vec[j]) #weight prevalence by rarity
-      model_preds$DECIDE_score <- model_preds$mean*model_preds$sd #recalculate with prevalence weighted by rarity
+      model_preds$mean <- model_preds$mean*(1-prevalence_vec[j]) #weight probability of presence by rarity
+      model_preds$DECIDE_score <- model_preds$mean*model_preds$sd #recalculate DECIDE score with probability of presence weighted by rarity
       model_outputs[[idx]] <- model_preds
       names(model_outputs)[idx] <- model_type
       idx <- idx + 1
