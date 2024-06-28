@@ -23,7 +23,9 @@ for(i in 1:4) {
   n_species = 1:50
   
   ## index file
-  pars <- data.frame(community_folder = paste0(dirs$outpath, community_version, simulation_run_name, "/", community_version, sprintf("community_%i_%i_sim/", n_communities, max(n_species))),
+  pars <- data.frame(community_folder = paste0(dirs$outpath, community_version, 
+                                               simulation_run_name, "/", community_version, 
+                                               sprintf("community_%i_%i_sim/", n_communities, max(n_species))),
                      model = "rf, gam, lr", 
                      method = "initial, none, uncertainty, prevalence, unc_plus_prev, unc_plus_recs, coverage",
                      community_version = community_version,

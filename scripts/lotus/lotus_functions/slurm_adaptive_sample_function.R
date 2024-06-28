@@ -1,4 +1,4 @@
-#' Adaptive sample data
+#' Adaptively sample data
 #' 
 #' Carry out adaptive sampling using six different methods
 

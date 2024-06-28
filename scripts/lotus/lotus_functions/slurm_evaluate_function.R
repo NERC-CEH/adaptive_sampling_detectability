@@ -1,4 +1,21 @@
-slurm_evaluate <- function(community_folder, community_version, AS_version, model, method){
+
+#' Evaluation
+#' 
+#' Evaluate changes in performance due to adaptive sampling
+#' 
+#' @param community_folder location of the community data
+#' @param community_version name of the community to evaluate
+#' @param AS_version Name of the adaptive sampling version
+#' @param model comma-separated list of models to evaluate. "rf, gam, lr"
+#' @param method comma-separated list of methods to evaluate
+#' @export
+
+
+slurm_evaluate <- function(community_folder, 
+                           community_version, # name of the community
+                           AS_version, 
+                           model, 
+                           method){
   
   #read in all model files for each species
   
