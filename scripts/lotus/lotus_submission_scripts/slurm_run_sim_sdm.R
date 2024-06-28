@@ -7,7 +7,7 @@ source('../scripts/slurm_run_sim_sdm_function.R')
 
 # name of the versions we are running - so we're not overwriting things
 # one for community-level which includes the community folders and species models folders
-community_version = 'v4'
+community_version = 'v1'
 
 
 ## run multiple adaptive sampling versions at once
@@ -60,12 +60,17 @@ for(asv in 1:nrow(asv_version)){
                        model = rep(rep(rep(models, length(n_communities)), each = length(data_type)), each = length(n_species)), # which models to use
                        data_type = rep(rep(data_type, length(n_communities)*length(models)), each = length(n_species)), 
                        writeRas = FALSE,
+                       env_data = paste0(dirs$envpath, "envdata_1km_no_corr_noNA.grd"),
                        GB = TRUE,
-                       community_version = community_version,
+                       environmental_subset = (2/3), # what proportion of environmental layers should be used for modelling?
+                       community_version_name = community_version,
                        simulation_run_name = simulation_run_name,
                        AS_version = AS_version,
                        n_communities = rep(rep(rep(n_communities, each = length(models)), each = length(data_type)), each = length(n_species)),
-                       n_species = max(n_species)
+                       n_species = max(n_species),
+                       function_path = dirs$functionpath,
+                       outpath = dirs$commpath,
+                       envpath = dirs$envpath
     )
     
     print(dim(pars))

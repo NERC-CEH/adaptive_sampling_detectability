@@ -10,20 +10,20 @@ community_version_name = 'v4'
 
 n_communities = 1:50
 
-pars <- data.frame( env_data = paste0(dirs$envpath, "envdata_1km_no_corr_noNA.grd"),
-                    outPath = dirs$commpath, 
-                    seed = n_communities, # community number
-                    max_samp = 20000, # max number of observations per species
-                    n_env = 10, # number of environmental variables from which to sample for species generation
-                    n = 50, # number of species per community
-                    detect_prob = "uniform", # detection probability, "beta", "uniform" or number between 0-1
-                    sample_across_species = TRUE, # whether to sample the same locations across all species (i.e. list structure) or sample different locations for each species
-                    niche_breadth = "narrow",
-                    effort = paste0(dirs$effortpath, "butterfly_1km_effort_layer.grd"), # sampling effort layer
-                    background = "MeanDiRange", # a layer which contains a value for each cell in the region of interest
-                    community_version_name = "v1", # Which community version
-                    simulation_run_name = 'narrow_breadth_uniform_detect_community',
-                    write = TRUE) # the name of the run name - don't change unless changing the resolution of the area of interest.
+pars <- data.frame(env_data = paste0(dirs$envpath, "envdata_1km_no_corr_noNA.grd"),
+                   outPath = dirs$commpath, 
+                   seed = n_communities, # community number
+                   max_samp = 20000, # max number of observations per species
+                   n_env = 10, # number of environmental variables from which to sample for species generation
+                   n = 50, # number of species per community
+                   detect_prob = "uniform", # detection probability, "beta", "uniform" or number between 0-1
+                   sample_across_species = TRUE, # whether to sample the same locations across all species (i.e. list structure) or sample different locations for each species
+                   niche_breadth = "narrow",
+                   effort = paste0(dirs$effortpath, "butterfly_1km_effort_layer.grd"), # sampling effort layer
+                   background = "MeanDiRange", # a layer which contains a value for each cell in the region of interest
+                   community_version_name = "v1", # Which community version
+                   simulation_run_name = 'narrow_breadth_uniform_detect_community',
+                   write = TRUE) # the name of the run name - don't change unless changing the resolution of the area of interest.
 
 
 

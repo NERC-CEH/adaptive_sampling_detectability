@@ -9,7 +9,7 @@ dirs <- config::get("LOTUSpaths_AS")
 
 # name of the versions we are running - so we're not overwriting things
 # Three different versions, one for community-level which includes the community folders and species models folders
-community_version = 'v4'
+community_version = 'v1'
 
 ## run multiple adaptive sampling versions at once
 
@@ -24,7 +24,7 @@ for(asv in 1:nrow(asv_version)){
   AS_version = asv_version$as_version[asv]
   
   # the name of the simulation run - same as slurm_simulate species
-  simulation_run_name = 'communities_1km'
+  simulation_run_name = 'narrow_nichebreadth_community'
   
   # number of communities - a vector!
   n_communities = 1:50
@@ -39,11 +39,19 @@ for(asv in 1:nrow(asv_version)){
   # dirs <- data.frame(outpath = 'broom',
   #                    inputs = 'handle')
   
-  pars <- data.frame(community_file = rep(paste0(dirs$outpath, community_version, simulation_run_name, "/", community_version, sprintf(paste0("community_%i_%i_sim/", community_version, "community_%i_%i_sim_initial.rds"), n_communities, max(n_species), n_communities, max(n_species))), each = length(method)), 
-                     sdm_path = rep(paste0(dirs$outpath, community_version, simulation_run_name, "/", community_version, sprintf("community_%i_%i_sim/", n_communities, max(n_species)), community_version, "species_models/"), each = length(method)), 
-                     effort = as.character(paste0(dirs$inputs,"butterfly_1km_effort_layer.grd")), 
+  pars <- data.frame(community_file = rep(paste0(dirs$commpath, community_version, simulation_run_name, "/", 
+                                                 community_version, 
+                                                 sprintf(paste0("community_%i_%i_sim/", community_version, 
+                                                                "community_%i_%i_sim_initial.rds"), n_communities, max(n_species), 
+                                                         n_communities, max(n_species))), each = length(method)), 
+                     sdm_path = rep(paste0(dirs$commpath, community_version, simulation_run_name, "/", 
+                                           community_version, 
+                                           sprintf("community_%i_%i_sim/", n_communities, max(n_species)),
+                                           community_version, "species_models/"), each = length(method)), 
+                     effort = as.character(paste0(dirs$effortpath,"butterfly_1km_effort_layer.grd")), 
                      background = "AnnualTemp", 
-                     env_data = paste0(dirs$inputs,"envdata_1km_no_corr_noNA.grd"),
+                     env_data = paste0(dirs$envpath,"envdata_1km_no_corr_noNA.grd"),
+                     extent_crop = NULL,
                      probability_weight_adj = 1,
                      weight_adj = 1, 
                      method = method,
@@ -51,7 +59,9 @@ for(asv in 1:nrow(asv_version)){
                      n = 2000,
                      community_version = community_version,
                      AS_version = AS_version,
-                     outPath = rep(paste0(dirs$outpath, community_version, simulation_run_name, "/", community_version, sprintf("community_%i_%i_sim/", n_communities, max(n_species))), each = length(method)))
+                     outPath = rep(paste0(dirs$commpath, community_version, simulation_run_name, "/", 
+                                          community_version, sprintf("community_%i_%i_sim/", n_communities, max(n_species))), each = length(method))
+  )
   
   pars$rownum <- 1:nrow(pars)
   

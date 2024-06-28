@@ -264,7 +264,7 @@ simulate_species <- function(env_data,
   community_name <- paste0("community_",seed,"_", n, "_sim")
   
   if(!dir.exists(paste0(outPath, community_version_name, simulation_run_name,"/", community_version_name, community_name,"/"))){
-    dir.create(paste0(outPath, community_version_name, simulation_run_name,"/", community_version_name, community_name,"/"), recursive = T)
+    dir.create(paste0(outPath, community_version_name, simulation_run_name,"/", community_version_name, community_name,"/"), recursive = TRUE)
   }
   
   if(write){
