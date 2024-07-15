@@ -25,8 +25,8 @@ slurm_run_sim_sdm <- function(index,
                               env_data,
                               data_type, 
                               writeRas, 
-                              extent_crop,
-                              extent_crs,
+                              extent_crop = NULL,
+                              extent_crs = NULL,
                               environmental_subset = (2/3), # what proportion of environmental layers should be used for modelling? If NULL, use all
                               community_version_name, 
                               AS_version, 
@@ -34,7 +34,8 @@ slurm_run_sim_sdm <- function(index,
                               n_communities, 
                               n_species,
                               function_path,
-                              outpath){
+                              outpath,
+                              envpath){
   
   library(terra)
   library(virtualspecies)

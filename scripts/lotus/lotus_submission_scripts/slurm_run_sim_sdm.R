@@ -22,7 +22,7 @@ for(asv in 1:nrow(asv_version)){
   print(AS_version)
   
   # the name of the simulation run - same as slurm_simulate species
-  simulation_run_name = 'communities_1km'
+  simulation_run_name = 'narrow_breadth_uniform_detect_community'
   
   ## create for loop to submit all scripts at once
   job_seqs <- list(1:11, 12:22, 23:33, 34:44, 45:50) 
@@ -37,7 +37,7 @@ for(asv in 1:nrow(asv_version)){
     
     # name of the versions we are running - so we're not overwriting things
     # one for community-level which includes the community folders and species models folders
-    community_version = community_version
+    community_version_name = community_version
     
     # One name for the adaptive sampling round to allow us to create different sampling methods of the same initial community
     # This doesn't get used if running only the initial model, but does get used when running the adaptive sampling methods.
@@ -58,12 +58,11 @@ for(asv in 1:nrow(asv_version)){
                          rep(rep(n_communities, each = length(models)), each = length(data_type)), max(n_species), data_type
                        ), each = length(n_species)), # location of all the community data
                        model = rep(rep(rep(models, length(n_communities)), each = length(data_type)), each = length(n_species)), # which models to use
+                       env_data = paste0(dirs$envpath, "envdata_1km_no_corr_noNA.grd"),
                        data_type = rep(rep(data_type, length(n_communities)*length(models)), each = length(n_species)), 
                        writeRas = FALSE,
-                       env_data = paste0(dirs$envpath, "envdata_1km_no_corr_noNA.grd"),
-                       GB = TRUE,
                        environmental_subset = (2/3), # what proportion of environmental layers should be used for modelling?
-                       community_version_name = community_version,
+                       community_version_name = community_version_name,
                        simulation_run_name = simulation_run_name,
                        AS_version = AS_version,
                        n_communities = rep(rep(rep(n_communities, each = length(models)), each = length(data_type)), each = length(n_species)),
