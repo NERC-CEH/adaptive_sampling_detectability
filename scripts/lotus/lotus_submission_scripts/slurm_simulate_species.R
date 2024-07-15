@@ -1,12 +1,12 @@
 
 library(rslurm)
 
-source('scripts/slurm_simulate_species_function.R')
+source('../../scripts/functions/lotus_functions/slurm_simulate_species_function.R')
 
-dirs <- config::get("LOTUSpaths_sim")
+dirs <- config::get("LOTUSpaths")
 
 # a version name that follows all the way through the community
-community_version_name = 'v4'
+community_version_name = 'v1'
 
 n_communities = 1:50
 
@@ -21,7 +21,7 @@ pars <- data.frame(env_data = paste0(dirs$envpath, "envdata_1km_no_corr_noNA.grd
                    niche_breadth = "narrow",
                    effort = paste0(dirs$effortpath, "butterfly_1km_effort_layer.grd"), # sampling effort layer
                    background = "MeanDiRange", # a layer which contains a value for each cell in the region of interest
-                   community_version_name = "v1", # Which community version
+                   community_version_name = community_version_name, # Which community version
                    simulation_run_name = 'narrow_breadth_uniform_detect_community',
                    write = TRUE) # the name of the run name - don't change unless changing the resolution of the area of interest.
 

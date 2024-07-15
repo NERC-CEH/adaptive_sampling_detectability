@@ -45,9 +45,9 @@ slurm_run_sim_sdm <- function(index,
   library(randomForest)
   library(ENMTools)
   
-  source(paste0(function_path,"reformat_simulated_data.R"))
+  source(paste0(function_path, "reformat_simulated_data.R"))
   source(paste0(function_path, "Edited_Rob_Functions.R"))
-  source(paste0(function_path,"getpredictions_dfsd.R"))
+  source(paste0(function_path, "getpredictions_dfsd.R"))
   
   
   # remove this
