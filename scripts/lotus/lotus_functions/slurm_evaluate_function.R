@@ -43,8 +43,7 @@ slurm_evaluate <- function(community_folder,
   #average across model types for each species and method combination
   
   #get species list from length of community list
-  species_list <- vector()
-  for (i in 1:length(community)){species_list[i] <- paste0("Sp",i)}
+  species_list <- paste0("Sp", 1:50)
   
   #get method types
   
@@ -52,19 +51,19 @@ slurm_evaluate <- function(community_folder,
   
   eval_list <- list()
   
-  print("!! Combining individual models for each method")
+  print("! Combining individual models for each method")
   
   #loop over species
   for (j in 1:length(species_list)){
     
     species <- species_list[j]
     
-    if(j %% 5 == 0) print(paste("!! Processing", species))
+    if(j %% 5 == 0) print(paste("! Processing", species))
     
     method_eval <- data.frame()
     for(k in method_types){
       
-      print(paste("!! Processing method", k))
+      # print(paste("! Processing method", k))
       
       if(k == "initial"){
         
@@ -102,7 +101,7 @@ slurm_evaluate <- function(community_folder,
         
         mse <- mean((terra::values(true_prob_occ)-terra::values(prediction))^2, na.rm=TRUE)
         medianse <- median((terra::values(true_prob_occ)-terra::values(prediction))^2, na.rm=TRUE)
-        corr <- cor(terra::values(true_prob_occ), terra::values(prediction), use = "pairwise.complete")
+        corr <- cor(terra::values(true_prob_occ), terra::values(prediction), use = "pairwise.complete")[1] # need to add [1] as there's a weird format
         auc <- as.numeric(pROC::auc(c(terra::values(true_pa)), 
                                     c(terra::values(prediction)),
                                     levels = c("0", "1"), quiet = TRUE))
@@ -150,11 +149,23 @@ slurm_evaluate <- function(community_folder,
     }
   } else {prevalence <- sapply(community, function(x) x$prevalence)}
   
-  eval_table$prevalence <- prevalence[as.numeric(sapply(strsplit(as.character(eval_table$species), split = "Sp"), function(x) x[[2]]))]
+  # eval_table$prevalence <- prevalence[as.numeric(sapply(strsplit(as.character(eval_table$species), split = "Sp"), function(x) x[[2]]))]
+  # 
+  # #extract detectability
+  # eval_table$detection_probability <- sapply(community, function(x) x$detection_probability)
+  # 
+  # # add community name
+  # eval_table$community <- community_name
   
-  eval_table$community <- community_name
+  # add adaptive sampling name
+  eval_table <- cbind(community_name,
+                      as_version = AS_version,
+                      prevalence = prevalence[as.numeric(sapply(strsplit(as.character(eval_table$species), split = "Sp"), function(x) x[[2]]))],
+                      detectability = sapply(community, function(x) x$detection_probability),
+                      eval_table)
   
-  write.csv(eval_table, file = paste0(community_folder, community_name, "_evaluation_table.csv"))
+  write.csv(eval_table, file = paste0(community_folder, community_name, "_evaluation_table.csv"),
+            rownames = FALSE)
   
   ### different format
   init_tab <- eval_table[eval_table$method =='initial',]
@@ -169,7 +180,8 @@ slurm_evaluate <- function(community_folder,
                                             paste0(init_tab$initial_species, init_tab$initial_community))]
   
   # alternate format
-  write.csv(et, file = paste0(community_folder, AS_version, '_', community_name, "_evaluation_table_alt.csv"))
+  write.csv(et, file = paste0(community_folder, AS_version, '_', community_name, "_evaluation_table_alt.csv"),
+            rownames = FALSE)
   
   
 } #end function

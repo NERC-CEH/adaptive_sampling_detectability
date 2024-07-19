@@ -1,9 +1,34 @@
 
-## Script for analysis figures 3,4 and 5
-
+## Analysing the outputs
 
 library(tidyverse)
 library(patchwork)
+
+# community name
+community_version = 'v1'
+
+# AS version
+as_version = c("asv1", "asv2", "asv3", "asv4")
+
+# simulation run name
+simulation_run_name = 'narrow_breadth_uniform_detect_community'
+
+# the communities that were run to evaluate
+n_communities = 1:50
+
+# number of species in each community - must be a vector
+n_species = 1:50
+
+
+
+paste0("outputs/communities/", community_version, simulation_run_name, "/evaluation_files",
+       "/", as_version, "_", community_version, "combined_outputs_comm", 
+       min(n_communities), "_", max(n_communities), "_spp", max(n_species), ".csv")
+
+as1 <- read.csv(paste0("outputs/communities/", community_version, simulation_run_name, "/evaluation_files",
+                       "/", as_version, "_", community_version, "combined_outputs_comm", 
+                       min(n_communities), "_", max(n_communities), "_spp", max(n_species), ".csv")[1])
+
 
 #### Data preparation
 
@@ -23,21 +48,30 @@ write = FALSE
 ## create evaluation data frames
 {
   # load each of the evaluation files 
-  cdf_0.1_uptake <- read.csv('outputs/v4Community/asv1_v4combined_outputs_comm1_50_spp50_v2.csv', 
+  cdf_0.1_uptake <- read.csv(paste0("outputs/communities/", community_version, simulation_run_name, "/evaluation_files",
+                                    "/", as_version, "_", community_version, "combined_outputs_comm", 
+                                    min(n_communities), "_", max(n_communities), "_spp", max(n_species), ".csv")[1], 
                              stringsAsFactors = FALSE) %>%
     mutate(uptake = '0.1',
            asv = 'asv1')
-  cdf_0.01_uptake <- read.csv('outputs/v4Community/asv2_v4combined_outputs_comm1_50_spp50_v2.csv', 
+  
+  cdf_0.01_uptake <- read.csv(paste0("outputs/communities/", community_version, simulation_run_name, "/evaluation_files",
+                                     "/", as_version, "_", community_version, "combined_outputs_comm", 
+                                     min(n_communities), "_", max(n_communities), "_spp", max(n_species), ".csv")[2], 
                               stringsAsFactors = FALSE) %>%
     mutate(uptake = '0.01',
            asv = 'asv2')
   
-  cdf_0.5_uptake <- read.csv('outputs/v4Community/asv4_v4combined_outputs_comm1_50_spp50_v2.csv', 
+  cdf_0.5_uptake <- read.csv(paste0("outputs/communities/", community_version, simulation_run_name, "/evaluation_files",
+                                    "/", as_version, "_", community_version, "combined_outputs_comm", 
+                                    min(n_communities), "_", max(n_communities), "_spp", max(n_species), ".csv")[4], 
                              stringsAsFactors = FALSE) %>%
     mutate(uptake = '0.5',
            asv = 'asv4')
   
-  cdf_0_uptake <- read.csv('outputs/v4Community/asv3_v4combined_outputs_comm1_50_spp50_v2.csv', 
+  cdf_0_uptake <- read.csv(paste0("outputs/communities/", community_version, simulation_run_name, "/evaluation_files",
+                                  "/", as_version, "_", community_version, "combined_outputs_comm", 
+                                  min(n_communities), "_", max(n_communities), "_spp", max(n_species), ".csv")[3], 
                            stringsAsFactors = FALSE) %>%
     mutate(uptake = '0',
            asv = 'asv3')
