@@ -1,25 +1,24 @@
-#' Adaptively sample data
+#' Adaptively Sample Data
 #' 
-#' Carry out adaptive sampling using six different methods
-
-
-#' @param community_file Location on disk of the community you want to sample as character
-#' @param sdm_path Location on disk of the models that have been run for the community as character
-#' @param effort Specification of the effort layer. Can be a number or name specifying a layer in the environmental data, the location of an effort raster, or NULL. If NULL, no effort 
-#' @param background Specification of the background layer to identify where sampling can take place. Can be a number or name specifying a layer in the environmental data, the location of an effort raster, or NULL. If NULL, no effort 
-#' @param env_data SpatRast of environmental data used in the simulate_species function.  
-#' @param extent_crop extent to crop raster - must be able to be converted to a SpatialPolygons object
-#' @param extent_crs coordinates for the extent
-#' @param probability_weight_adj Adjust the influence of bias in the sampling. Use to increase the effect of the sampling layers
+#' Carry out adaptive sampling using six different methods.
+#'
+#' @param community_file Location on disk of the community you want to sample as character.
+#' @param sdm_path Location on disk of the models that have been run for the community as character.
+#' @param effort Specification of the effort layer. Can be a number or name specifying a layer in the environmental data, the location of an effort raster, or NULL. If NULL, no effort.
+#' @param background Specification of the background layer to identify where sampling can take place. Can be a number or name specifying a layer in the environmental data, the location of an effort raster, or NULL. If NULL, no background.
+#' @param env_data SpatRast of environmental data used in the simulate_species function.
+#' @param extent_crop Extent to crop raster - must be able to be converted to a SpatialPolygons object.
+#' @param extent_crs Coordinates for the extent.
+#' @param probability_weight_adj Adjust the influence of bias in the sampling. Use to increase the effect of the sampling layers.
 #' @param weight_adj Adjust the influence that background sampling has on the adaptive sampling methods.
-#' @param model Models to use to do the model-based adaptive sampling methods from 
-#' @param method Adaptive sampling method to use
-#' @param n Number of new samples to take
-#' @param uptake Value between 0-1 that specifies the amount of uptake of the adaptive sampling method. 1-uptake defines the influence of the background layer on sampling
-#' @param community_version Name of the community version used in simulate_species function
-#' @param AS_version Version of the adaptive sampling round. Use to name what uptake value has been used
-#' @param save_cell_weights should the cell weights used for sampling be saved?
-#' @param outPath where to store data. Suggest using the same place as the community file.
+#' @param model Models to use for the model-based adaptive sampling methods from. Options include "rf", "gam", and "lr".
+#' @param method Adaptive sampling method to use. Options are 'none', 'uncertainty', 'prevalence', 'unc_plus_prev', 'unc_plus_recs', 'coverage', 'detectability', 'prev_plus_detect', 'unc_plus_detect'.
+#' @param n Number of new samples to take.
+#' @param uptake Value between 0-1 that specifies the amount of uptake of the adaptive sampling method. 1-uptake defines the influence of the background layer on sampling.
+#' @param community_version Name of the community version used in the simulate_species function.
+#' @param AS_version Version of the adaptive sampling round. Used to name what uptake value has been used.
+#' @param save_cell_weights Should the cell weights used for sampling be saved? Default is FALSE.
+#' @param outPath Where to store data. Suggest using the same place as the community file.
 #' @export
 #'
 slurm_adaptive_sample <- function(community_file, 
