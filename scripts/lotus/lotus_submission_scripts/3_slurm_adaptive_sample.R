@@ -56,7 +56,6 @@ for(asv in 1:nrow(asv_version)){
                      method = method,
                      uptake = asv_version$uptake_value[asv],
                      n = 2000,
-                     community_version = community_version,
                      AS_version = AS_version,
                      outPath = rep(paste0(dirs$commpath, community_version, simulation_run_name, "/", 
                                           community_version, sprintf("community_%i_%i_sim/", n_communities, max(n_species))), each = length(method))

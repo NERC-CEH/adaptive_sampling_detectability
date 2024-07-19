@@ -15,7 +15,6 @@
 #' @param method Adaptive sampling method to use. Options are 'none', 'uncertainty', 'prevalence', 'unc_plus_prev', 'unc_plus_recs', 'coverage', 'detectability', 'prev_plus_detect', 'unc_plus_detect'.
 #' @param n Number of new samples to take.
 #' @param uptake Value between 0-1 that specifies the amount of uptake of the adaptive sampling method. 1-uptake defines the influence of the background layer on sampling.
-#' @param community_version Name of the community version used in the simulate_species function.
 #' @param AS_version Version of the adaptive sampling round. Used to name what uptake value has been used.
 #' @param save_cell_weights Should the cell weights used for sampling be saved? Default is FALSE.
 #' @param outPath Where to store data. Suggest using the same place as the community file.
@@ -34,7 +33,6 @@ slurm_adaptive_sample <- function(community_file,
                                   method, 
                                   n = 100, 
                                   uptake = NULL, 
-                                  community_version, 
                                   AS_version,
                                   save_cell_weights = FALSE,
                                   outPath){
@@ -485,13 +483,13 @@ slurm_adaptive_sample <- function(community_file,
     
     # save cell weights
     if (method == "coverage"){ 
-      write.csv(empty_cells, 
+      write.csv(cbind(empty_cells, method = method, as_version = AS_version), 
                 file = paste0(outPath, 'preds_and_obsvs/', method, '_', AS_version, '_', community_name, "_cellweights.csv"))
     } else {
       if (method == "none"){
-        cell_weights_df <- cbind(eff_df, cell_weights = cell_weights)
+        cell_weights_df <- cbind(eff_df, cell_weights = cell_weights, method = method, as_version = AS_version)
       } else {
-        cell_weights_df <- cbind(comb_df, cell_weights = cell_weights)
+        cell_weights_df <- cbind(comb_df, cell_weights = cell_weights, method = method, as_version = AS_version)
       }
       write.csv(cell_weights_df, 
                 file = paste0(outPath, 'preds_and_obsvs/', method, '_', AS_version, '_', community_name, "_cellweights.csv"))
