@@ -52,15 +52,22 @@ slurm_evaluate <- function(community_folder,
   
   eval_list <- list()
   
+  print("!! Combining individual models for each method")
+  
   #loop over species
   for (j in 1:length(species_list)){
     
     species <- species_list[j]
     
+    if(j %% 5 == 0) print(paste("!! Processing", species))
+    
     method_eval <- data.frame()
     for(k in method_types){
       
+      print(paste("!! Processing method", k))
+      
       if(k == "initial"){
+        
         models_to_read <- grep(paste0(species, "_", k, ".rdata"), models)
       } else {models_to_read <- grep(paste0(species, "_initial_AS_", k, ".rdata"), models)}
       
@@ -68,7 +75,7 @@ slurm_evaluate <- function(community_folder,
         idx <- 1
         model_outputs <- list()
         for (l in models_to_read){
-          print(models[l])
+          # print(models[l])
           model_output <- NULL
           try(load(paste0(community_folder, community_version, 'species_models/', models[l])))
           model_type <- model_output$model
@@ -89,28 +96,39 @@ slurm_evaluate <- function(community_folder,
         mod_average <- Reduce(`+`, model_outputs) / length(model_outputs)
         
         #extract basic metrics
+        prediction <- terra::rast(mod_average[,1:3], type="xyz")
+        true_prob_occ <- terra::crop(terra::unwrap(community[[j]]$true_prob_occ), prediction)
+        true_pa <- terra::crop(terra::unwrap(community[[j]]$pres_abs), prediction)
         
-        
-        prediction <- raster::rasterFromXYZ(mod_average[,1:3])
-        true_prob_occ <- raster::crop(community[[j]]$true_prob_occ, prediction)
-        true_pa <- raster::crop(community[[j]]$pres_abs, prediction)
-        
-        mse <- mean((raster::getValues(true_prob_occ)-raster::getValues(prediction))^2, na.rm=TRUE)
-        medianse <- median((raster::getValues(true_prob_occ)-raster::getValues(prediction))^2, na.rm=TRUE)
-        corr <- cor(raster::getValues(true_prob_occ), raster::getValues(prediction), use = "pairwise.complete")
-        auc <- as.numeric(pROC::auc(raster::getValues(true_pa), raster::getValues(prediction), quiet = TRUE))
+        mse <- mean((terra::values(true_prob_occ)-terra::values(prediction))^2, na.rm=TRUE)
+        medianse <- median((terra::values(true_prob_occ)-terra::values(prediction))^2, na.rm=TRUE)
+        corr <- cor(terra::values(true_prob_occ), terra::values(prediction), use = "pairwise.complete")
+        auc <- as.numeric(pROC::auc(c(terra::values(true_pa)), 
+                                    c(terra::values(prediction)),
+                                    levels = c("0", "1"), quiet = TRUE))
         
         # extract mean and sd error
-        mabse <- mean((raster::getValues(true_prob_occ)-raster::getValues(prediction)), na.rm=TRUE)
-        sdabse <- sd((raster::getValues(true_prob_occ)-raster::getValues(prediction)), na.rm=TRUE)
+        mabse <- mean((terra::values(true_prob_occ)-terra::values(prediction)), na.rm=TRUE)
+        sdabse <- sd((terra::values(true_prob_occ)-terra::values(prediction)), na.rm=TRUE)
         
-        occprobe <- sum(raster::getValues(true_prob_occ), na.rm = T) - sum(raster::getValues(prediction), na.rm=TRUE)
+        occprobe <- sum(terra::values(true_prob_occ), na.rm = T) - sum(terra::values(prediction), na.rm=TRUE)
         
         #extract mean and max stdev
         mean_sd <- mean(mod_average$sd, na.rm = TRUE)
         max_sd <- max(mod_average$sd, na.rm = TRUE)
         
-        method_eval <- rbind(method_eval, data.frame(method = k, mse = mse, medianse = medianse, corr = corr, auc = auc, mean_sd = mean_sd, max_sd = max_sd, species = species, mabse = mabse, sdabse = sdabse, occprobe = occprobe))
+        method_eval <- rbind(method_eval, 
+                             data.frame(method = k, 
+                                        mse = mse, 
+                                        medianse = medianse, 
+                                        corr = corr, 
+                                        auc = auc, 
+                                        mean_sd = mean_sd, 
+                                        max_sd = max_sd, 
+                                        species = species, 
+                                        mabse = mabse, 
+                                        sdabse = sdabse, 
+                                        occprobe = occprobe))
         
       }
     }#method loop
@@ -127,7 +145,8 @@ slurm_evaluate <- function(community_folder,
   if(is.null(community[[1]]$prevalence)){
     prevalence <- vector()
     for (j in 1:length(species_list)){
-      prevalence[j] <- sum(raster::getValues(community[[j]]$pres_abs), na.rm=TRUE)/nrow(mod_average)
+      prevalence[j] <- sum(terra::values(terra::unwrap(community[[j]]$pres_abs)), 
+                           na.rm=TRUE)/nrow(mod_average)
     }
   } else {prevalence <- sapply(community, function(x) x$prevalence)}
   
@@ -135,7 +154,7 @@ slurm_evaluate <- function(community_folder,
   
   eval_table$community <- community_name
   
-  write.csv(eval_table, file = paste0(community_folder, community_name, "_evaluation_table2.csv"))
+  write.csv(eval_table, file = paste0(community_folder, community_name, "_evaluation_table.csv"))
   
   ### different format
   init_tab <- eval_table[eval_table$method =='initial',]
@@ -150,7 +169,7 @@ slurm_evaluate <- function(community_folder,
                                             paste0(init_tab$initial_species, init_tab$initial_community))]
   
   # alternate format
-  write.csv(et, file = paste0(community_folder, AS_version, '_', community_name, "_evaluation_table_alt2.csv"))
+  write.csv(et, file = paste0(community_folder, AS_version, '_', community_name, "_evaluation_table_alt.csv"))
   
   
 } #end function

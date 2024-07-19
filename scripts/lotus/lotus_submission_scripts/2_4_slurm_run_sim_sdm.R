@@ -33,7 +33,7 @@ for(asv in 1:nrow(asv_version)){
     n_species = 1:50 # vector of number of species in each community
     n_communities = s # number of communities to go through # can submit 11 at a time ## done 1-11, running 12-22, done 23-33, done 34-44, done 45-50
     models = c('lr', 'gam', 'rf') # models to run
-    data_type = "initial" #c("initial_AS_none", "initial_AS_uncertainty", "initial_AS_prevalence", "initial_AS_unc_plus_prev", "initial_AS_unc_plus_recs", "initial_AS_coverage") # 'initial'
+    data_type = c("initial_AS_none", "initial_AS_uncertainty", "initial_AS_coverage", "initial_AS_detectability", "initial_AS_prev_plus_detect", "initial_AS_unc_plus_detect") #"initial" #c("initial_AS_none", "initial_AS_uncertainty", "initial_AS_prevalence", "initial_AS_unc_plus_prev", "initial_AS_unc_plus_recs", "initial_AS_coverage", "initial_AS_detectability", "initial_AS_prev_plus_detect", "initial_AS_unc_plus_detect") # 'initial'
     
     # name of the versions we are running - so we're not overwriting things
     # one for community-level which includes the community folders and species models folders

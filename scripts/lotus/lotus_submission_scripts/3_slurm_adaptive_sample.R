@@ -1,11 +1,10 @@
 ## script to submit adaptive sampling
 
-# source function to run
-source("scripts/slurm_adaptive_sample_function.R")
-
 library(rslurm)
 
-dirs <- config::get("LOTUSpaths_AS")
+dirs <- config::get("LOTUSpaths")
+
+source("../../scripts/functions/lotus_functions/slurm_adaptive_sample_function.R")
 
 # name of the versions we are running - so we're not overwriting things
 # Three different versions, one for community-level which includes the community folders and species models folders
@@ -24,7 +23,7 @@ for(asv in 1:nrow(asv_version)){
   AS_version = asv_version$as_version[asv]
   
   # the name of the simulation run - same as slurm_simulate species
-  simulation_run_name = 'narrow_nichebreadth_community'
+  simulation_run_name = 'narrow_breadth_uniform_detect_community'
   
   # number of communities - a vector!
   n_communities = 1:50
@@ -33,7 +32,7 @@ for(asv in 1:nrow(asv_version)){
   n_species = 1:50
   
   # the adaptive sampling methods to use 
-  method = "coverage" #c("none", "uncertainty", "prevalence", "unc_plus_prev", "unc_plus_recs", "coverage") 
+  method =  c("none", "uncertainty", "coverage", "detectability", "prev_plus_detect", "unc_plus_detect") #c("none", "uncertainty", "prevalence", "unc_plus_prev", "unc_plus_recs", "coverage", "detectability", "prev_plus_detect", "unc_plus_detect") 
   
   # # set outpath and inputs for testing
   # dirs <- data.frame(outpath = 'broom',
@@ -51,9 +50,9 @@ for(asv in 1:nrow(asv_version)){
                      effort = as.character(paste0(dirs$effortpath,"butterfly_1km_effort_layer.grd")), 
                      background = "AnnualTemp", 
                      env_data = paste0(dirs$envpath,"envdata_1km_no_corr_noNA.grd"),
-                     extent_crop = NULL,
                      probability_weight_adj = 1,
                      weight_adj = 1, 
+                     model = c("rf", "gam", "lr"), 
                      method = method,
                      uptake = asv_version$uptake_value[asv],
                      n = 2000,
@@ -63,7 +62,7 @@ for(asv in 1:nrow(asv_version)){
                                           community_version, sprintf("community_%i_%i_sim/", n_communities, max(n_species))), each = length(method))
   )
   
-  pars$rownum <- 1:nrow(pars)
+  # pars$rownum <- 1:nrow(pars)
   
   dim(pars)
   # head(pars)

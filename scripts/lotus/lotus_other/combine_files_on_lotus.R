@@ -13,7 +13,7 @@ for(v in 1:asv){
   simulation_run_name = 'communities_1km'
   
   # name of the community version we are running - so we're not overwriting things, keep same as for slurm_run_sim_sdm
-  community_version = 'v4'
+  community_version = 'v1'
   
   # name of the adaptive sampling version we are looking to evaluate
   AS_version = paste0('asv',v)
@@ -29,7 +29,7 @@ for(v in 1:asv){
   
   for(i in 1:length(community_folder)) {
     
-    f_to_read <- list.files(path = community_folder[i], pattern = paste0(AS_version, "_*.*_evaluation_table_alt2.csv"), full.names = TRUE)
+    f_to_read <- list.files(path = community_folder[i], pattern = paste0(AS_version, "_*.*_evaluation_table_alt.csv"), full.names = TRUE)
     f_to_read <- grep(AS_version, f_to_read, value = TRUE)
     
     if(length(f_to_read)==0) next
