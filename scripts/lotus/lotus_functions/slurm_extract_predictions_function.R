@@ -1,9 +1,25 @@
 
-# extract predictions and observations function
-extract_predictions <- function(community_folder, community_version, AS_version, model, method, extract_preds){
-  
-  require(raster)
-  require(readr)
+#' Extract Predictions and Observations
+#'
+#' This function extracts model predictions and observations for each species in a community, given a set of models and methods.
+#'
+#' @param community_folder Character string specifying the path to the community folder.
+#' @param community_version Character string specifying the community version.
+#' @param AS_version Character string specifying the adaptive sampling (AS) version.
+#' @param model Character string specifying the model types, separated by commas.
+#' @param method Character string specifying the methods, separated by commas.
+#' @param extract_preds Logical value indicating whether to extract predictions. Defaults to TRUE.
+#' @param extract_obs Logical value indicating whether to extract observations. Defaults to TRUE.
+#'
+#' @return This function saves extracted predictions and observations to CSV files in the specified community folder.
+#' @export
+#'
+extract_observations_predictions <- function(community_folder, 
+                                             community_version, 
+                                             AS_version, model, 
+                                             method, 
+                                             extract_preds = TRUE,
+                                             extract_obs = TRUE){
   
   #read in all model files for each species
   
@@ -37,8 +53,7 @@ extract_predictions <- function(community_folder, community_version, AS_version,
   #average across model types for each species and method combination
   
   #get species list from length of community list
-  species_list <- vector()
-  for (i in 1:length(community)){species_list[i] <- paste0("Sp",i)}
+  species_list <- paste0("Sp",1:length(community))
   
   #get method types
   
@@ -49,7 +64,7 @@ extract_predictions <- function(community_folder, community_version, AS_version,
   # method_mod_av <- data.frame()
   # method_obsvs <- data.frame()
   
-  print('starting species')
+  print('! Processing species')
   
   #loop over species
   for (j in 1:length(species_list)){
@@ -119,54 +134,32 @@ extract_predictions <- function(community_folder, community_version, AS_version,
                                 method = k,
                                 species = species_list[j], 
                                 prevalence = community[[j]]$prevalence,
+                                detectability = community[[j]]$detection_probability,
                                 as_comm[[j]]$observations)
         }
         
         method_obsvs <- rbind(method_obsvs, observations)
         method_mod_av <- rbind(method_mod_av, mod_average_pres_unc)
         
-      } else { # this is to store information about which species and methods had 0 observations 
-        
-        # find and store observations from each method
-        if(k == 'initial'){
-          observations <- cbind(community = community_name,
-                                method = k,
-                                species = species_list[j], 
-                                prevalence = community[[j]]$prevalence,
-                                community[[j]]$observations)
-        } else {
-          # read in community file after AS for all AS methods
-          as_comm <- readRDS(grep(AS_version, list.files(community_folder, pattern = k, full.names = T), value = T))
-          observations <- cbind(community = community_name,
-                                method = k,
-                                species = species_list[j], 
-                                prevalence = community[[j]]$prevalence,
-                                as_comm[[j]]$observations)
-        }
-        
-        method_obsvs <- rbind(method_obsvs, observations)
-        
-      }
+      } #method loop
       
-    }#method loop
+      
+      
+      dir.create(file.path(community_folder,'preds_and_obsvs'))
+      
+      # save model averages
+      if(extract_preds) write.csv(method_mod_av, file = paste0(community_folder, 'preds_and_obsvs/', species, '_', AS_version, '_', community_name, "_model_averages.csv"))
+      
+      # save observations file
+      if(extract_obs) write.csv(method_obsvs, file = paste0(community_folder, 'preds_and_obsvs/', species, '_', AS_version, '_', community_name, "_observations.csv"))
+      
+      if(extract_preds & extract_obs) 
+        print(paste("! Files saved in", file.path(community_folder,'preds_and_obsvs'))) else
+          print("! Nothing saved as both 'extract_preds' & 'extract_obs' == FALSE")
+      
+      
+    }#species loop
     
-    dir.create(file.path(community_folder,'preds_and_obsvs'))
     
-    # save model averages
-    if(extract_preds) write_csv(method_mod_av, file = paste0(community_folder, 'preds_and_obsvs/', species, '_', AS_version, '_', community_name, "_model_averages.csv"))
-    
-    # save observations file
-    write_csv(method_obsvs, file = paste0(community_folder, 'preds_and_obsvs/', species, '_', AS_version, '_', community_name, "_observations.csv"))
-    
-    
-  }#species loop
+  } #end function
   
-  # # save model averages
-  # write.csv(method_mod_av, file = paste0(community_folder, AS_version, '_', community_name, "_model_averages.csv"))
-  # 
-  # # save observations file
-  # write.csv(method_obsvs, file = paste0(community_folder, AS_version, '_', community_name, "_observations.csv"))
-  # 
-  # return(list(method_mod_av, method_obsvs))
-  
-} #end function
