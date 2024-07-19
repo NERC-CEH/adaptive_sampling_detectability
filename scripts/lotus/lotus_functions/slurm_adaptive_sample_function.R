@@ -18,6 +18,7 @@
 #' @param uptake Value between 0-1 that specifies the amount of uptake of the adaptive sampling method. 1-uptake defines the influence of the background layer on sampling
 #' @param community_version Name of the community version used in simulate_species function
 #' @param AS_version Version of the adaptive sampling round. Use to name what uptake value has been used
+#' @param save_cell_weights should the cell weights used for sampling be saved?
 #' @param outPath where to store data. Suggest using the same place as the community file.
 #' @export
 #'
@@ -35,7 +36,8 @@ slurm_adaptive_sample <- function(community_file,
                                   n = 100, 
                                   uptake = NULL, 
                                   community_version, 
-                                  AS_version, 
+                                  AS_version,
+                                  save_cell_weights = FALSE,
                                   outPath){
   
   # # print the row number from the pars file
@@ -476,11 +478,30 @@ slurm_adaptive_sample <- function(community_file,
               paste0("'readRDS(", 
                      paste0(outPath, AS_version, '_', community_name, "_AS_", method, ".rds'"))))
   
+  # save cell weights
+  if(save_cell_weights){
+    print("! Saving cell weights")
+    
+    if(!dir.exists(paste0(outPath, 'preds_and_obsvs/'))) dir.create(paste0(community_folder, 'preds_and_obsvs/'))
+    
+    # save cell weights
+    if (method == "coverage"){ 
+      write.csv(empty_cells, 
+                file = paste0(outPath, 'preds_and_obsvs/', method, '_', AS_version, '_', community_name, "_cellweights.csv"))
+    } else {
+      if (method == "none"){
+        cell_weights_df <- cbind(eff_df, cell_weights = cell_weights)
+      } else {
+        cell_weights_df <- cbind(comb_df, cell_weights = cell_weights)
+      }
+      write.csv(cell_weights_df, 
+                file = paste0(outPath, 'preds_and_obsvs/', method, '_', AS_version, '_', community_name, "_cellweights.csv"))
+    }
+  }
+  
   
   print("! All done")
   
   return(community_AS)
   
-  # "outputs/communities/v1narrow_nichebreadth_community/v1community_1_100_sim/asv1_v1community_1_100_sim_initial_AS_unc_plus_recs.rds"
-  # "outputs\communities\v1narrow_nichebreadth_community\v1community_1_100_sim"
 }

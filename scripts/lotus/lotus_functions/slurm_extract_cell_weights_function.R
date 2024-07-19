@@ -1,6 +1,22 @@
 # function to generate new data based on existing locations and model
 
-slurm_extract_cell_weights_function <- function(community_folder,rownum, community_file, sdm_path, effort, background, env_data, extent_crop = NULL, probability_weight_adj, weight_adj, model = c("rf", "gam", "lr"), method, n = 100, uptake = NULL, community_version, AS_version, outPath){
+slurm_extract_cell_weights_function <- function(community_folder,
+                                                rownum, 
+                                                community_file, 
+                                                sdm_path, 
+                                                effort, 
+                                                background, 
+                                                env_data, 
+                                                extent_crop = NULL, 
+                                                probability_weight_adj,
+                                                weight_adj, 
+                                                model = c("rf", "gam", "lr"), 
+                                                method, 
+                                                n = 100, 
+                                                uptake = NULL, 
+                                                community_version, 
+                                                AS_version, 
+                                                outPath){
   
   # print the row number from the pars file
   print(rownum)
