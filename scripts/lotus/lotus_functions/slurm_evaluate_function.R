@@ -144,15 +144,15 @@ slurm_evaluate <- function(community_folder,
   if(is.null(community[[1]]$prevalence)){
     prevalence <- vector()
     for (j in 1:length(species_list)){
-      prevalence[j] <- sum(terra::values(terra::unwrap(community[[j]]$pres_abs)), 
+      prevalence[j] <- sum(terra::values(terra::unwrap(community[[j]]$pres_abs)),
                            na.rm=TRUE)/nrow(mod_average)
     }
   } else {prevalence <- sapply(community, function(x) x$prevalence)}
   
+  #extract detectability
+  detection_probability <- sapply(community, function(x) x$detection_probability)
+  
   # eval_table$prevalence <- prevalence[as.numeric(sapply(strsplit(as.character(eval_table$species), split = "Sp"), function(x) x[[2]]))]
-  # 
-  # #extract detectability
-  # eval_table$detection_probability <- sapply(community, function(x) x$detection_probability)
   # 
   # # add community name
   # eval_table$community <- community_name
@@ -161,7 +161,7 @@ slurm_evaluate <- function(community_folder,
   eval_table <- cbind(community_name,
                       as_version = AS_version,
                       prevalence = prevalence[as.numeric(sapply(strsplit(as.character(eval_table$species), split = "Sp"), function(x) x[[2]]))],
-                      detectability = sapply(community, function(x) x$detection_probability),
+                      detectability = detection_probability[as.numeric(sapply(strsplit(as.character(eval_table$species), split = "Sp"), function(x) x[[2]]))],
                       eval_table)
   
   write.csv(eval_table, file = paste0(community_folder, community_name, "_evaluation_table.csv"),
