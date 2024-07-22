@@ -109,7 +109,7 @@ write = FALSE
   
   ## calculate average across communities
   comm_df <- et %>%
-    group_by(community, method, uptake) %>%
+    group_by(community_name, method, uptake) %>%
     summarise(mse = mean(mse, na.rm = TRUE),
               medse = mean(medianse, na.rm = TRUE),
               corr = mean(corr, na.rm = TRUE),

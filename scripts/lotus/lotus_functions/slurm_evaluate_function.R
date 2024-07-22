@@ -165,7 +165,7 @@ slurm_evaluate <- function(community_folder,
                       eval_table)
   
   write.csv(eval_table, file = paste0(community_folder, community_name, "_evaluation_table.csv"),
-            rownames = FALSE)
+            row.names = FALSE)
   
   ### different format
   init_tab <- eval_table[eval_table$method =='initial',]
@@ -181,7 +181,7 @@ slurm_evaluate <- function(community_folder,
   
   # alternate format
   write.csv(et, file = paste0(community_folder, AS_version, '_', community_name, "_evaluation_table_alt.csv"),
-            rownames = FALSE)
+            row.names = FALSE)
   
   
 } #end function

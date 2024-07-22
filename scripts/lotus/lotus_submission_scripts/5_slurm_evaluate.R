@@ -37,12 +37,12 @@ for(i in 1:4) {
                            jobname = paste('evaluate_community', community_version, AS_version, collapse = '_'),
                            nodes = length(pars$community_folder),
                            cpus_per_node = 1,
-                           slurm_options = list(partition = 'short-serial',#-4hr',
-                                                time = '5:59:59',# '3:59:59',
-                                                mem = 3000,
+                           slurm_options = list(partition = 'short-serial-4hr',
+                                                time = '3:59:59',
+                                                mem = 10000,
                                                 output = "sim_eval_%a.out",
-                                                error = "sim_eval_%a.err"),
-                                                # account = "short4hr"),
+                                                error = "sim_eval_%a.err",
+                                                account = "short4hr"),
                            sh_template = "jasmin_submit_sh.txt",
                            submit = TRUE)
   
