@@ -32,7 +32,7 @@ for(asv in 1:nrow(asv_version)){
   n_species = 1:50
   
   # the adaptive sampling methods to use 
-  method =  c("none", "uncertainty", "coverage", "detectability", "prev_plus_detect", "unc_plus_detect") #c("none", "uncertainty", "prevalence", "unc_plus_prev", "unc_plus_recs", "coverage", "detectability", "prev_plus_detect", "unc_plus_detect") 
+  method =  c("unc_plus_detect_prev") #c("none", "uncertainty", "prevalence", "unc_plus_prev", "unc_plus_recs", "coverage", "detectability", "prev_plus_detect", "unc_plus_detect", "unc_plus_detect_prev") 
   
   # # set outpath and inputs for testing
   # dirs <- data.frame(outpath = 'broom',
@@ -52,7 +52,6 @@ for(asv in 1:nrow(asv_version)){
                      env_data = paste0(dirs$envpath,"envdata_1km_no_corr_noNA.grd"),
                      probability_weight_adj = 1,
                      weight_adj = 1, 
-                     model = c("rf", "gam", "lr"), 
                      method = method,
                      uptake = asv_version$uptake_value[asv],
                      n = 2000,

@@ -19,6 +19,10 @@ n_communities = 1:50
 # number of species in each community - must be a vector
 n_species = 1:50
 
+# list of emthods used, in order you want
+as_methods = c("initial", "none", "coverage", "uncertainty", "detectability", 
+               "prev_plus_detect", "unc_plus_detect")
+
 
 
 paste0("outputs/communities/", community_version, simulation_run_name, "/evaluation_files",
@@ -124,6 +128,7 @@ write = FALSE
               init_mean_sd = mean(init_mean_sd, na.rm = TRUE),
               init_max_sd = max(init_max_sd, na.rm = TRUE),
               prev = median(prev),
+              detectability = median(detectability),
               
               # mean of deltas
               delta_mse = mean(delta_mse, na.rm = TRUE),
@@ -134,8 +139,7 @@ write = FALSE
               delta_max_sd = mean(delta_max_sd, na.rm = TRUE)) %>%
     ungroup() %>% 
     mutate(method = factor(method, 
-                           levels=c("initial", "none", "coverage", "prevalence",  
-                                    "uncertainty", "unc_plus_prev", "unc_plus_recs")))
+                           levels = as_methods))
   
   
   
@@ -147,6 +151,7 @@ write = FALSE
   etp <- et %>% 
     # split data into different categories
     mutate(prev_cat = as.numeric(cut_number(prevalence,10)), #dplyr::ntile(prevalence, 10), # prevalence
+           detect_cat = as.numeric(cut_number(detectability,10)),
            auc_cat = as.numeric(cut_number(init_auc,10)), #dplyr::ntile(init_auc, 10),
            mse_cat = as.numeric(cut_number(init_mse,10)), #dplyr::ntile(init_mse, 10),
            medse_cat = as.numeric(cut_number(init_medse,10)), #dplyr::ntile(init_medse, 10),
@@ -176,8 +181,7 @@ write = FALSE
                                           ifelse(perc_inc_medse> -p_c & perc_inc_medse< 0, 2.5,
                                                  ifelse(perc_inc_medse< p_c & perc_inc_medse> 0, -2.5, 0)))),
            method = factor(method, 
-                           levels=c("initial", "none", "coverage", "prevalence",  
-                                    "uncertainty", "unc_plus_prev", "unc_plus_recs")))
+                           levels=as_methods))
   
   # remove initial data
   etp_p2 <- subset(etp, method != 'initial')
@@ -185,7 +189,7 @@ write = FALSE
   
   # number of models with > x% increase in each community
   nmods <- etp %>%
-    group_by(community, method, uptake) %>%
+    group_by(community_name, method, uptake) %>%
     summarise(n_mods_auc_1 = sum(perc_inc_auc>1, na.rm = TRUE),
               n_mods_auc_2 = sum(perc_inc_auc>2, na.rm = TRUE),
               n_mods_auc_5 = sum(perc_inc_auc>5, na.rm = TRUE),
@@ -270,17 +274,17 @@ write = FALSE
     geom_boxplot() +
     theme_bw() + 
     # ylim(-(2*sd(comm_df$delta_mse)), 2*sd(comm_df$delta_mse)) +
-    scale_y_reverse(limits = c((2*sd(comm_df$delta_mse)), -2*sd(comm_df$delta_mse))) +
+    # scale_y_reverse(limits = c((2*sd(comm_df$delta_mse)), -2*sd(comm_df$delta_mse))) +
     geom_hline(yintercept = 0, linetype = 'dashed') +
     xlab('') +
     ylab('Delta MSE') +
     scale_fill_manual(name = 'Uptake (%)', labels = c(1, 10, 50),
                       values = c("#E69F00", "#56B4E9", "#009E73")) +
-    scale_x_discrete(labels= c('Business \n as usual', 'Gap-filling', 'Rare species',
-                               'Uncertainty only', 'Uncertainty of \n rare species', 
-                               'Gap-filling \n with uncertainty')) +
-    theme(text = element_text(size = 12),
-          axis.text.x = element_blank())
+    # scale_x_discrete(labels= c('Business \n as usual', 'Gap-filling', 'Rare species',
+    #                            'Uncertainty only', 'Uncertainty of \n rare species', 
+    #                            'Gap-filling \n with uncertainty')) +
+    theme(text = element_text(size = 12))#,
+          # axis.text.x = element_blank())
   
   cno1
   ## use this!!
@@ -295,9 +299,9 @@ write = FALSE
     ylab('Number of models with\n>1% improvement') +
     xlab('') +
     theme_bw() +
-    scale_x_discrete(labels= c('Business \n as usual', 'Gap-filling', 'Rare species',
-                               'Uncertainty\nonly', 'Uncertainty of \n rare species', 
-                               'Gap-filling \n with uncertainty')) + 
+    # scale_x_discrete(labels= c('Business \n as usual', 'Gap-filling', 'Rare species',
+    #                            'Uncertainty\nonly', 'Uncertainty of \n rare species', 
+    #                            'Gap-filling \n with uncertainty')) + 
     theme(text = element_text(size = 12),
           axis.text.x = element_text(size = 12, angle = 0, vjust = 0))
   msen
@@ -317,10 +321,10 @@ write = FALSE
 #### figure 4 - proportion of models in different percentage categories
 {
   fig4 <- ggplot(na.omit(subset(etp_p2, uptake == 0.5 & method != 'initial')), 
-                 aes(x = prev_cat, fill = factor(perc_imp_mse))) +
+                 aes(x = detect_cat, fill = factor(perc_imp_mse))) +
     geom_bar(position="fill") +
     ylab('Proportion of models') +
-    xlab('Prevalence decile') +
+    # xlab('Prevalence decile') +
     facet_grid(~method) +
     scale_fill_brewer(name = 'Improvement in\nmodel MSE (%)',
                       palette = "PRGn",
