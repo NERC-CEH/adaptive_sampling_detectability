@@ -151,22 +151,22 @@ slurm_adaptive_sample <- function(community_file,
       
       ## Calculate sampling layers based on individual species' characteristics
       
-      # weight probability of presence by rarity
+      # "prevalence" - weight probability of presence by rarity
       model_preds$mean_rarity_weight <- model_preds$mean*(1-prevalence_vec[j]) 
       
-      # weight probability of presence by detectability
+      # "detectability" - weight probability of presence by detectability
       model_preds$mean_detect_weight <- model_preds$mean*(1-detectability_vec[j]) 
       
-      # weight rarity weighted probability of presence by detectability
+      # "prev_plus_detect" - weight rarity weighted probability of presence by detectability
       model_preds$mean_rarity_detect_weight <- model_preds$mean_rarity_weight*(1-detectability_vec[j]) 
       
-      # recalculate DECIDE score with probability of presence weighted by rarity
+      # "unc_plus_prev" - recalculate DECIDE score with probability of presence weighted by rarity
       model_preds$unc_rarity_weight <- model_preds$mean_rarity_weight*model_preds$sd
       
-      # weight uncertainty by detectability
+      # "unc_plus_detect" - weight uncertainty by detectability
       model_preds$uncertainty_detect_weight <- model_preds$sd*(1-detectability_vec[j])
       
-      # weight uncertainty by detectability and prevalence
+      # "unc_plus_detect_prev" - weight uncertainty by detectability and prevalence
       model_preds$uncertainty_detect_prev_weight <- model_preds$uncertainty_detect_weight*(1-prevalence_vec[j]) 
       
       model_outputs[[idx]] <- model_preds

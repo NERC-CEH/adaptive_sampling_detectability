@@ -27,7 +27,7 @@ for(i in 1:4) {
                                                simulation_run_name, "/", community_version, 
                                                sprintf("community_%i_%i_sim/", n_communities, max(n_species))),
                      model = "rf, gam, lr", 
-                     method =   "initial, none, uncertainty, coverage, detectability, prev_plus_detect, unc_plus_detect",
+                     method =   "initial, none, uncertainty, coverage, detectability, prev_plus_detect, unc_plus_detect, unc_plus_detect_prev",
                      community_version = community_version,
                      AS_version = AS_version)
   

@@ -21,7 +21,7 @@ n_species = 1:50
 
 # list of emthods used, in order you want
 as_methods = c("initial", "none", "coverage", "uncertainty", "detectability", 
-               "prev_plus_detect", "unc_plus_detect")
+               "prev_plus_detect", "unc_plus_detect", "unc_plus_detect_prev")
 
 
 
@@ -41,10 +41,11 @@ meth_names <- list(
   "initial",
   "Business\nas usual",
   "Gap-filling",
-  "Rare species",
   "Uncertainty only",
-  "Uncertainty of\nrare species",
-  "Gap-filling\nwith uncertainty"
+  "Presence of\ncryptic species",
+  "Presence of rare\nand cryptic species",
+  "Uncertainty of\ncryptic species",
+  "Uncertainty of rare\nand cryptic species"
 )
 
 write = FALSE
@@ -141,6 +142,8 @@ write = FALSE
     mutate(method = factor(method, 
                            levels = as_methods))
   
+  levels(comm_df$method) <- unlist(meth_names)
+  
   
   
   ## get model improvements by certain percentages
@@ -212,8 +215,7 @@ write = FALSE
                                             ifelse(grepl(x = name, pattern = 'medse'), 'medse', 'WRONG')))),
            inc_amount = as.numeric(gsub("[^\\d]+", "", name, perl=TRUE)),
            method = factor(method, 
-                           levels=c("initial", "none", "coverage", "prevalence", 
-                                    "uncertainty", "unc_plus_prev", "unc_plus_recs")))
+                           levels=as_methods))
   
 }
 
@@ -281,7 +283,7 @@ write = FALSE
     scale_fill_manual(name = 'Uptake (%)', labels = c(1, 10, 50),
                       values = c("#E69F00", "#56B4E9", "#009E73")) +
     # scale_x_discrete(labels= c('Business \n as usual', 'Gap-filling', 'Rare species',
-    #                            'Uncertainty only', 'Uncertainty of \n rare species', 
+    #                            'Uncertainty only', 'Uncertainty of \n rare species',
     #                            'Gap-filling \n with uncertainty')) +
     theme(text = element_text(size = 12))#,
           # axis.text.x = element_blank())
