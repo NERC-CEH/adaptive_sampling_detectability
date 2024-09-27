@@ -7,10 +7,10 @@ dirs <- config::get("LOTUSpaths")
 
 asv <- 4
 
-for(v in 1:asv){
+for(v in c(1,4)) { #1:asv){
   
   # the name of the simulation run - same as slurm_simulate species
-  simulation_run_name = 'narrow_breadth_uniform_detect_community'
+  simulation_run_name = 'narrow_breadth_0.8_detect_community'
   
   # name of the community version we are running - so we're not overwriting things, keep same as for slurm_run_sim_sdm
   community_version = 'v1'

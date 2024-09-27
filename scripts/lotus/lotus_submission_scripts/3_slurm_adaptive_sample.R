@@ -23,7 +23,7 @@ for(asv in 1:nrow(asv_version)){
   AS_version = asv_version$as_version[asv]
   
   # the name of the simulation run - same as slurm_simulate species
-  simulation_run_name = 'narrow_breadth_uniform_detect_community'
+  simulation_run_name = 'narrow_breadth_0.8_detect_community'
   
   # number of communities - a vector!
   n_communities = 1:50
@@ -32,7 +32,7 @@ for(asv in 1:nrow(asv_version)){
   n_species = 1:50
   
   # the adaptive sampling methods to use 
-  method =  c("unc_plus_detect_prev") #c("none", "uncertainty", "prevalence", "unc_plus_prev", "unc_plus_recs", "coverage", "detectability", "prev_plus_detect", "unc_plus_detect", "unc_plus_detect_prev") 
+  method =  c("none", "uncertainty", "prevalence", "unc_plus_prev", "unc_plus_recs", "coverage", "detectability", "prev_plus_detect", "unc_plus_detect", "unc_plus_detect_prev") 
   
   # # set outpath and inputs for testing
   # dirs <- data.frame(outpath = 'broom',

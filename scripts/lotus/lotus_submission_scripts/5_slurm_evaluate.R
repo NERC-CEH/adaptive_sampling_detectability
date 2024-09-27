@@ -9,14 +9,15 @@ dirs <- config::get("LOTUSpaths")
 community_version = 'v1'
 
 as_versions = c('asv1', 'asv2', 'asv3', 'asv4')
+as_versions =  c("asv1", "asv4")
 
-for(i in 1:4) {
+for(i in 1:length(as_versions)) {
   
   # name of the adaptive sampling version we are looking to evaluate
   AS_version = as_versions[i]
   
   # the name of the simulation run - same as slurm_simulate species
-  simulation_run_name = 'narrow_breadth_uniform_detect_community'
+  simulation_run_name = 'narrow_breadth_0.8_detect_community'
   
   n_communities = 1:50
   
@@ -27,7 +28,7 @@ for(i in 1:4) {
                                                simulation_run_name, "/", community_version, 
                                                sprintf("community_%i_%i_sim/", n_communities, max(n_species))),
                      model = "rf, gam, lr", 
-                     method =   "initial, none, uncertainty, coverage, detectability, prev_plus_detect, unc_plus_detect, unc_plus_detect_prev",
+                     method = "initial, none, uncertainty, coverage, detectability, prev_plus_detect, unc_plus_detect, unc_plus_detect_prev",
                      community_version = community_version,
                      AS_version = AS_version)
   
@@ -67,7 +68,7 @@ for(i in 1:4) {
 # AS_version = as_versions[1]
 # 
 # # the name of the simulation run - same as slurm_simulate species
-# simulation_run_name = 'narrow_breadth_uniform_detect_community'
+# simulation_run_name = 'narrow_breadth_0.8_detect_community'
 # 
 # n_communities = 1:50
 # 

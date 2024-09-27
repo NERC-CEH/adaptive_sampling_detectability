@@ -8,10 +8,10 @@ library(patchwork)
 community_version = 'v1'
 
 # AS version
-as_version = c("asv1", "asv2", "asv3", "asv4")
+as_version = c("asv1", "asv4") #"asv2", "asv3", "asv4")
 
 # simulation run name
-simulation_run_name = 'narrow_breadth_uniform_detect_community'
+simulation_run_name = 'narrow_breadth_0.8_detect_community'
 
 # the communities that were run to evaluate
 n_communities = 1:50
@@ -43,9 +43,9 @@ meth_names <- list(
   "Gap-filling",
   "Uncertainty only",
   "Presence of\ncryptic species",
-  "Presence of rare\nand cryptic species",
+  "Presence of\nrare and cryptic species",
   "Uncertainty of\ncryptic species",
-  "Uncertainty of rare\nand cryptic species"
+  "Uncertainty of\nrare and cryptic species"
 )
 
 write = FALSE
@@ -83,6 +83,9 @@ write = FALSE
   
   # combine all the files
   cdf <- rbind(cdf_0_uptake, cdf_0.1_uptake,cdf_0.01_uptake,cdf_0.5_uptake)
+  
+  # combine all the files
+  cdf <- rbind(cdf_0.1_uptake, cdf_0.5_uptake)
   
   # bind initial values to full dataset
   init_tab <- cdf[cdf$method =='initial',]
@@ -154,7 +157,7 @@ write = FALSE
   etp <- et %>% 
     # split data into different categories
     mutate(prev_cat = as.numeric(cut_number(prevalence,10)), #dplyr::ntile(prevalence, 10), # prevalence
-           detect_cat = as.numeric(cut_number(detectability,10)),
+           # detect_cat = as.numeric(cut_number(detectability,10)),
            auc_cat = as.numeric(cut_number(init_auc,10)), #dplyr::ntile(init_auc, 10),
            mse_cat = as.numeric(cut_number(init_mse,10)), #dplyr::ntile(init_mse, 10),
            medse_cat = as.numeric(cut_number(init_medse,10)), #dplyr::ntile(init_medse, 10),
