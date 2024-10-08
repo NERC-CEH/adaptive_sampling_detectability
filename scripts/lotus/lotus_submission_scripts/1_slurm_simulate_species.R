@@ -8,7 +8,11 @@ dirs <- config::get("LOTUSpaths")
 # a version name that follows all the way through the community
 community_version_name = 'v1'
 
-n_communities = 1:50
+# number of communities
+n_communities = 1:10
+
+# detection probability
+detect_prob = 0.2
 
 pars <- data.frame(env_data = paste0(dirs$envpath, "envdata_1km_no_corr_noNA.grd"),
                    sample_across_species = TRUE, # whether to sample the same locations across all species (i.e. list structure) or sample different locations for each species
@@ -19,12 +23,12 @@ pars <- data.frame(env_data = paste0(dirs$envpath, "envdata_1km_no_corr_noNA.grd
                    seed = n_communities, # community number
                    n_env = 10, # number of environmental variables from which to sample for species generation
                    max_samp = 20000, # max number of observations per species
-                   detect_prob = 0.8, #"uniform", # detection probability, "beta", "uniform" or number between 0-1
+                   detect_prob = detect_prob, #"uniform", # detection probability, "beta", "uniform" or number between 0-1
                    niche_breadth = "narrow",
                    effort = paste0(dirs$effortpath, "butterfly_1km_effort_layer.grd"), # sampling effort layer
                    background = "MeanDiRange", # a layer which contains a value for each cell in the region of interest
                    community_version_name = community_version_name, # Which community version
-                   simulation_run_name = 'narrow_breadth_0.8_detect_community',
+                   simulation_run_name = paste0('narrow_breadth_', detect_prob, '_detect_community'),
                    write = TRUE) # the name of the run name - don't change unless changing the resolution of the area of interest.
 
 

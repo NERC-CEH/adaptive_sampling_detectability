@@ -7,8 +7,12 @@ library(patchwork)
 # community name
 community_version = 'v1'
 
-# AS version
-as_version = c("asv1", "asv4") #"asv2", "asv3", "asv4")
+# AS versions
+as_version = c("asv1", "asv2", "asv3", "asv4")
+
+# as versions and uptake values
+uptake_values = data.frame(as_version =  c("asv1", "asv2", "asv3", "asv4"),
+                           uptake_value = c(0.1, 0.01, 0, 0.5))
 
 # simulation run name
 simulation_run_name = 'narrow_breadth_0.8_detect_community'
@@ -20,19 +24,8 @@ n_communities = 1:50
 n_species = 1:50
 
 # list of emthods used, in order you want
-as_methods = c("initial", "none", "coverage", "uncertainty", "detectability", 
-               "prev_plus_detect", "unc_plus_detect", "unc_plus_detect_prev")
-
-
-
-paste0("outputs/communities/", community_version, simulation_run_name, "/evaluation_files",
-       "/", as_version, "_", community_version, "combined_outputs_comm", 
-       min(n_communities), "_", max(n_communities), "_spp", max(n_species), ".csv")
-
-as1 <- read.csv(paste0("outputs/communities/", community_version, simulation_run_name, "/evaluation_files",
-                       "/", as_version, "_", community_version, "combined_outputs_comm", 
-                       min(n_communities), "_", max(n_communities), "_spp", max(n_species), ".csv")[1])
-
+as_methods = c("initial", "none", "uncertainty", "detectability", 
+               "prev_plus_detect", "unc_plus_detect","unc_plus_detect_prev")
 
 #### Data preparation
 
@@ -40,7 +33,6 @@ as1 <- read.csv(paste0("outputs/communities/", community_version, simulation_run
 meth_names <- list(
   "initial",
   "Business\nas usual",
-  "Gap-filling",
   "Uncertainty only",
   "Presence of\ncryptic species",
   "Presence of\nrare and cryptic species",
@@ -52,40 +44,15 @@ write = FALSE
 
 ## create evaluation data frames
 {
-  # load each of the evaluation files 
-  cdf_0.1_uptake <- read.csv(paste0("outputs/communities/", community_version, simulation_run_name, "/evaluation_files",
-                                    "/", as_version, "_", community_version, "combined_outputs_comm", 
-                                    min(n_communities), "_", max(n_communities), "_spp", max(n_species), ".csv")[1], 
-                             stringsAsFactors = FALSE) %>%
-    mutate(uptake = '0.1',
-           asv = 'asv1')
   
-  cdf_0.01_uptake <- read.csv(paste0("outputs/communities/", community_version, simulation_run_name, "/evaluation_files",
-                                     "/", as_version, "_", community_version, "combined_outputs_comm", 
-                                     min(n_communities), "_", max(n_communities), "_spp", max(n_species), ".csv")[2], 
-                              stringsAsFactors = FALSE) %>%
-    mutate(uptake = '0.01',
-           asv = 'asv2')
+  asv_files <- paste0("outputs/communities/", community_version, simulation_run_name, "/evaluation_files",
+                      "/", as_version, "_", community_version, "combined_outputs_comm", 
+                      min(n_communities), "_", max(n_communities), "_spp", max(n_species), ".csv")
   
-  cdf_0.5_uptake <- read.csv(paste0("outputs/communities/", community_version, simulation_run_name, "/evaluation_files",
-                                    "/", as_version, "_", community_version, "combined_outputs_comm", 
-                                    min(n_communities), "_", max(n_communities), "_spp", max(n_species), ".csv")[4], 
-                             stringsAsFactors = FALSE) %>%
-    mutate(uptake = '0.5',
-           asv = 'asv4')
-  
-  cdf_0_uptake <- read.csv(paste0("outputs/communities/", community_version, simulation_run_name, "/evaluation_files",
-                                  "/", as_version, "_", community_version, "combined_outputs_comm", 
-                                  min(n_communities), "_", max(n_communities), "_spp", max(n_species), ".csv")[3], 
-                           stringsAsFactors = FALSE) %>%
-    mutate(uptake = '0',
-           asv = 'asv3')
-  
-  # combine all the files
-  cdf <- rbind(cdf_0_uptake, cdf_0.1_uptake,cdf_0.01_uptake,cdf_0.5_uptake)
-  
-  # combine all the files
-  cdf <- rbind(cdf_0.1_uptake, cdf_0.5_uptake)
+  cdf <- do.call(rbind, lapply(asv_files, function(x){
+    read.csv(x) %>% 
+      mutate(uptake = uptake_values$uptake_value[which(unique(as_version) == uptake_values$as_version)])
+  }))
   
   # bind initial values to full dataset
   init_tab <- cdf[cdf$method =='initial',]
@@ -289,7 +256,7 @@ write = FALSE
     #                            'Uncertainty only', 'Uncertainty of \n rare species',
     #                            'Gap-filling \n with uncertainty')) +
     theme(text = element_text(size = 12))#,
-          # axis.text.x = element_blank())
+  # axis.text.x = element_blank())
   
   cno1
   ## use this!!

@@ -15,6 +15,9 @@ community_version = 'v1'
 asv_version = data.frame(as_version =  c("asv1", "asv2", "asv3", "asv4"),
                          uptake_value = c(0.1, 0.01, 0, 0.5))
 
+# detection probability
+detect_prob = 0.01
+
 for(asv in 1:nrow(asv_version)){
   
   # and an adaptive sampling version, which is if we want to run the adaptive sampling 
@@ -23,10 +26,10 @@ for(asv in 1:nrow(asv_version)){
   AS_version = asv_version$as_version[asv]
   
   # the name of the simulation run - same as slurm_simulate species
-  simulation_run_name = 'narrow_breadth_0.8_detect_community'
+  simulation_run_name = paste0('narrow_breadth_', detect_prob, '_detect_community')
   
   # number of communities - a vector!
-  n_communities = 1:50
+  n_communities = 1:10
   
   # number of species in each community - used only in the parameter file to allow runs with different numbers of species
   n_species = 1:50

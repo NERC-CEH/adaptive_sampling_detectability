@@ -9,6 +9,8 @@ source('../../scripts/functions/lotus_functions/slurm_run_sim_sdm_function.R')
 # one for community-level which includes the community folders and species models folders
 community_version = 'v1'
 
+# detection probability
+detect_prob = 0.01
 
 ## run multiple adaptive sampling versions at once
 asv_version = data.frame(as_version =  c("asv1", "asv4"), # c("asv1", "asv2", "asv3", "asv4"),
@@ -22,10 +24,10 @@ for(asv in 1:nrow(asv_version)){
   print(AS_version)
   
   # the name of the simulation run - same as slurm_simulate species
-  simulation_run_name = 'narrow_breadth_0.8_detect_community'
+  simulation_run_name = paste0('narrow_breadth_', detect_prob, '_detect_community')
   
   ## create for loop to submit all scripts at once
-  job_seqs <- list(1:11, 12:22, 23:33, 34:44, 45:50) 
+  job_seqs <- list(1:10) #list(1:11, 12:22, 23:33, 34:44, 45:50) 
   
   for(s in job_seqs) {
     
@@ -33,7 +35,7 @@ for(asv in 1:nrow(asv_version)){
     n_species = 1:50 # vector of number of species in each community
     n_communities = s # number of communities to go through # can submit 11 at a time ## done 1-11, running 12-22, done 23-33, done 34-44, done 45-50
     models = c('lr', 'gam', 'rf') # models to run
-    data_type = c("initial_AS_none", "initial_AS_uncertainty", "initial_AS_detectability", "initial_AS_prev_plus_detect", "initial_AS_unc_plus_detect","initial_AS_unc_plus_detect_prev") #"initial" #c("initial_AS_none", "initial_AS_uncertainty", "initial_AS_prevalence", "initial_AS_unc_plus_prev", "initial_AS_unc_plus_recs", "initial_AS_coverage", "initial_AS_detectability", "initial_AS_prev_plus_detect", "initial_AS_unc_plus_detect", "initial_AS_unc_plus_detect_prev") # 'initial'
+    data_type = "initial" # c("initial_AS_none", "initial_AS_uncertainty", "initial_AS_detectability", "initial_AS_prev_plus_detect", "initial_AS_unc_plus_detect","initial_AS_unc_plus_detect_prev") #"initial" #c("initial_AS_none", "initial_AS_uncertainty", "initial_AS_prevalence", "initial_AS_unc_plus_prev", "initial_AS_unc_plus_recs", "initial_AS_coverage", "initial_AS_detectability", "initial_AS_prev_plus_detect", "initial_AS_unc_plus_detect", "initial_AS_unc_plus_detect_prev") # 'initial'
     
     # name of the versions we are running - so we're not overwriting things
     # one for community-level which includes the community folders and species models folders
